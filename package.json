@@ -1,0 +1,22 @@
+{
+  "name": "arrows-escape-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimalist arrow extraction logic puzzle with 1000+ procedurally generated levels. Play in the browser.",
+  "scripts": {
+    "start": "serve . -p 5173 --no-clipboard"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  },
+  "keywords": [
+    "puzzle",
+    "logic",
+    "arrows",
+    "game",
+    "vanilla-js",
+    "procedural-generation"
+  ],
+  "author": "",
+  "license": "MIT"
+}

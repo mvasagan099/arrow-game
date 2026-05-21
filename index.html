@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Arrows Escape • Puzzle</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="A minimalist arrow extraction logic puzzle with 1000+ procedurally generated levels. Pan, zoom, play anywhere.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➡️</text></svg>">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo">➡️</div>
+        <div>
+          <h1>Arrows Escape</h1>
+          <p class="tagline">A minimalist logic puzzle</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-howto" class="btn btn-ghost" title="How to Play (H)">How to Play</button>
+        <button id="btn-levels" class="btn btn-ghost" title="Level Select">Levels</button>
+        <button id="btn-achievements" class="btn btn-ghost" title="Achievements">Achievements</button>
+
+        <button id="btn-theme" class="btn btn-icon" title="Toggle theme" aria-label="Toggle light/dark theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Game Container -->
+    <div class="game-container">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="level-info">
+          <span id="level-label" class="level-label">Level 1</span>
+          <span id="level-tier" class="tier easy">Easy</span>
+        </div>
+
+        <div class="hearts" id="hearts" aria-label="Hearts remaining">
+          <!-- Populated by JS: 3 heart icons -->
+        </div>
+
+        <div class="stats">
+          <span id="moves">0 moves</span>
+        </div>
+      </div>
+
+      <!-- Canvas Board -->
+      <div class="board-wrapper" id="board-wrapper">
+        <canvas id="game-canvas" width="520" height="520" aria-label="Puzzle board"></canvas>
+        <div class="board-overlay" id="board-overlay">
+          <!-- Toast / messages can appear here -->
+          <div id="toast" class="toast hidden"></div>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <button id="btn-hint" class="btn btn-primary" title="Hint (H)">
+          <span class="icon">💡</span> Hint
+        </button>
+        <button id="btn-undo" class="btn" title="Undo (U)">
+          <span class="icon">↩️</span> Undo
+        </button>
+        <button id="btn-restart" class="btn" title="Restart (R)">
+          <span class="icon">🔄</span> Restart
+        </button>
+        <button id="btn-resetview" class="btn" title="Reset View (Space)">
+          <span class="icon">🔍</span> Reset View
+        </button>
+      </div>
+
+      <div class="help-text">
+        Tap an arrow to extract it • Right-drag or two fingers to pan • Scroll or pinch to zoom
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>Progress saved locally • No ads • Pure logic</span>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <!-- How to Play -->
+  <div id="modal-howto" class="modal" role="dialog" aria-labelledby="howto-title" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h2 id="howto-title">How to Play</h2>
+      <div class="modal-body">
+        <p>Your goal is to <strong>extract every arrow</strong> from the grid without collisions.</p>
+        
+        <h3>Rules</h3>
+        <ul>
+          <li>Click or tap an arrow to make it fly off the board in the direction it points.</li>
+          <li>The path must be completely clear — no other arrows may stand in its way to the edge.</li>
+          <li>If you pick a blocked arrow you lose a ❤️ heart. The level resets when hearts run out.</li>
+          <li>Clear the whole board to win. There is always at least one valid order.</li>
+        </ul>
+
+        <h3>Controls</h3>
+        <ul>
+          <li><strong>Mouse:</strong> Left-click = remove • Right-drag = pan • Wheel = zoom</li>
+          <li><strong>Touch:</strong> Tap = remove • Long-press = hint • Pinch = zoom • 2-finger drag = pan</li>
+          <li><strong>Keyboard:</strong> <kbd>H</kbd> Hint • <kbd>R</kbd> Restart • <kbd>U</kbd> Undo • <kbd>Space</kbd> Reset view • Arrow keys nudge</li>
+        </ul>
+
+        <p class="note">No timers. Think ahead. Enjoy the calm.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary modal-close-btn">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Levels Modal -->
+  <div id="modal-levels" class="modal" role="dialog" aria-labelledby="levels-title" aria-modal="true">
+    <div class="modal-content modal-wide">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h2 id="levels-title">Select Level</h2>
+      
+      <div class="levels-controls">
+        <input type="number" id="level-jump" min="1" placeholder="Jump to level..." />
+        <button id="btn-jump" class="btn">Go</button>
+        <button id="btn-next-unsolved" class="btn">Next Unsolved</button>
+      </div>
+
+      <div class="difficulty-tabs">
+        <button data-tier="all" class="tab active">All</button>
+        <button data-tier="easy" class="tab">Easy (1-200)</button>
+        <button data-tier="medium" class="tab">Medium (201-400)</button>
+        <button data-tier="hard" class="tab">Hard (401-600)</button>
+        <button data-tier="veryhard" class="tab">Very Hard (601-800)</button>
+        <button data-tier="nightmare" class="tab">Nightmare (801+)</button>
+      </div>
+
+      <div id="levels-grid" class="levels-grid">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal -->
+  <div id="modal-achievements" class="modal" role="dialog" aria-labelledby="achievements-title" aria-modal="true">
+    <div class="modal-content modal-wide">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h2 id="achievements-title">Achievements <span id="ach-progress">(0/15)</span></h2>
+      
+      <div id="achievements-grid" class="achievements-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Win Modal -->
+  <div id="modal-win" class="modal" role="dialog" aria-labelledby="win-title" aria-modal="true">
+    <div class="modal-content">
+      <h2 id="win-title">Level Complete! 🎉</h2>
+      <div class="modal-body win-body">
+        <p id="win-message">Beautifully solved.</p>
+        <div id="win-new-achievements" class="new-achievements"></div>
+        <div class="win-stats">
+          <div>Hearts left: <strong id="win-hearts">3</strong>/3</div>
+          <div>Moves: <strong id="win-moves">12</strong></div>
+        </div>
+      </div>
+      <div class="modal-footer win-footer">
+        <button id="btn-win-replay" class="btn">Replay</button>
+        <button id="btn-win-next" class="btn btn-primary">Next Level →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fail Modal -->
+  <div id="modal-fail" class="modal" role="dialog" aria-labelledby="fail-title" aria-modal="true">
+    <div class="modal-content">
+      <h2 id="fail-title">Out of Hearts</h2>
+      <div class="modal-body">
+        <p>The arrows collided. Don't worry — the order is still waiting for you.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-fail-retry" class="btn btn-primary">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
