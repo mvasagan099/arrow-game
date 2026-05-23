@@ -15,8 +15,8 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
-# Misc
+# Local env
 .env
 .env.local
-*.log

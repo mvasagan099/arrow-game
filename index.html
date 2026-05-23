@@ -1,192 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Arrows Escape • Puzzle</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="description" content="A minimalist arrow extraction logic puzzle with 1000+ procedurally generated levels. Pan, zoom, play anywhere.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➡️</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Arrows – Puzzle Escape</title>
+  <meta name="description" content="A minimalist arrow extraction logic puzzle. Extract every arrow from the grid without causing a collision." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M14 32h28M30 18l14 14-14 14' fill='none' stroke='%23111' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
 </head>
 <body>
-  <div class="app">
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="logo">➡️</div>
-        <div>
-          <h1>Arrows Escape</h1>
-          <p class="tagline">A minimalist logic puzzle</p>
-        </div>
+  <div class="app" id="app">
+
+    <header class="topbar">
+      <button id="btn-menu" class="icon-btn" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+        </svg>
+      </button>
+
+      <div class="level-title">
+        <div id="level-label">Level 1</div>
+        <div id="level-tier" class="tier easy">Easy</div>
       </div>
 
-      <div class="header-actions">
-        <button id="btn-howto" class="btn btn-ghost" title="How to Play (H)">How to Play</button>
-        <button id="btn-levels" class="btn btn-ghost" title="Level Select">Levels</button>
-        <button id="btn-achievements" class="btn btn-ghost" title="Achievements">Achievements</button>
-
-        <button id="btn-theme" class="btn btn-icon" title="Toggle theme" aria-label="Toggle light/dark theme">
-          <span class="theme-icon">🌙</span>
-        </button>
-      </div>
+      <div class="hearts" id="hearts" aria-label="Hearts remaining"></div>
     </header>
 
-    <!-- Game Container -->
-    <div class="game-container">
-      <!-- Status Bar -->
-      <div class="status-bar">
-        <div class="level-info">
-          <span id="level-label" class="level-label">Level 1</span>
-          <span id="level-tier" class="tier easy">Easy</span>
-        </div>
+    <div class="progress" aria-hidden="true">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
 
-        <div class="hearts" id="hearts" aria-label="Hearts remaining">
-          <!-- Populated by JS: 3 heart icons -->
-        </div>
+    <main class="board-wrapper" id="board-wrapper">
+      <canvas id="game-canvas" aria-label="Puzzle board"></canvas>
 
-        <div class="stats">
-          <span id="moves">0 moves</span>
-        </div>
-      </div>
+      <div class="overlay" id="overlay">
+        <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
-      <!-- Canvas Board -->
-      <div class="board-wrapper" id="board-wrapper">
-        <canvas id="game-canvas" width="520" height="520" aria-label="Puzzle board"></canvas>
-        <div class="board-overlay" id="board-overlay">
-          <!-- Toast / messages can appear here -->
-          <div id="toast" class="toast hidden"></div>
+        <div id="level-complete" class="level-complete hidden" aria-hidden="true">
+          <div class="lc-check">
+            <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+              <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" />
+              <path d="M20 33l9 9 16-19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div class="lc-title">Solved</div>
+          <div class="lc-sub">Level <span id="lc-level">1</span> complete</div>
+          <button id="btn-lc-next" class="btn-primary lc-next">Next</button>
         </div>
       </div>
+    </main>
 
-      <!-- Action Bar -->
-      <div class="action-bar">
-        <button id="btn-hint" class="btn btn-primary" title="Hint (H)">
-          <span class="icon">💡</span> Hint
-        </button>
-        <button id="btn-undo" class="btn" title="Undo (U)">
-          <span class="icon">↩️</span> Undo
-        </button>
-        <button id="btn-restart" class="btn" title="Restart (R)">
-          <span class="icon">🔄</span> Restart
-        </button>
-        <button id="btn-resetview" class="btn" title="Reset View (Space)">
-          <span class="icon">🔍</span> Reset View
-        </button>
-      </div>
+    <nav class="actions" aria-label="Game actions">
+      <button id="btn-undo" class="action" aria-label="Undo (U)" title="Undo (U)">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M9 14l-4-4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M5 10h9a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <span>Undo</span>
+      </button>
 
-      <div class="help-text">
-        Tap an arrow to extract it • Right-drag or two fingers to pan • Scroll or pinch to zoom
-      </div>
-    </div>
+      <button id="btn-hint" class="action action-hint" aria-label="Hint (H)" title="Hint (H)">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+          <path d="M9 21h6M10 18h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.5-1 2.5v.5H9v-.5c0-1-.3-1.8-1-2.5A6 6 0 0 1 12 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <span>Hint</span>
+      </button>
 
-    <footer class="footer">
-      <span>Progress saved locally • No ads • Pure logic</span>
-    </footer>
-  </div>
+      <button id="btn-resetview" class="action" aria-label="Recenter view (Space)" title="Recenter view (Space)">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+        </svg>
+        <span>Center</span>
+      </button>
 
-  <!-- Modals -->
-  <!-- How to Play -->
-  <div id="modal-howto" class="modal" role="dialog" aria-labelledby="howto-title" aria-modal="true">
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Close">&times;</button>
-      <h2 id="howto-title">How to Play</h2>
-      <div class="modal-body">
-        <p>Your goal is to <strong>extract every arrow</strong> from the grid without collisions.</p>
-        
-        <h3>Rules</h3>
-        <ul>
-          <li>Click or tap an arrow to make it fly off the board in the direction it points.</li>
-          <li>The path must be completely clear — no other arrows may stand in its way to the edge.</li>
-          <li>If you pick a blocked arrow you lose a ❤️ heart. The level resets when hearts run out.</li>
-          <li>Clear the whole board to win. There is always at least one valid order.</li>
-        </ul>
+      <button id="btn-restart" class="action" aria-label="Restart level (R)" title="Restart level (R)">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M4 12a8 8 0 1 0 2.5-5.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+          <path d="M4 4v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <span>Restart</span>
+      </button>
+    </nav>
 
-        <h3>Controls</h3>
-        <ul>
-          <li><strong>Mouse:</strong> Left-click = remove • Right-drag = pan • Wheel = zoom</li>
-          <li><strong>Touch:</strong> Tap = remove • Long-press = hint • Pinch = zoom • 2-finger drag = pan</li>
-          <li><strong>Keyboard:</strong> <kbd>H</kbd> Hint • <kbd>R</kbd> Restart • <kbd>U</kbd> Undo • <kbd>Space</kbd> Reset view • Arrow keys nudge</li>
-        </ul>
+    <div id="drawer" class="drawer" role="dialog" aria-labelledby="drawer-title" aria-modal="true" aria-hidden="true">
+      <div class="drawer-scrim" data-close></div>
+      <div class="drawer-panel">
+        <button class="drawer-close icon-btn" aria-label="Close menu" data-close>&times;</button>
+        <h2 id="drawer-title">Arrows</h2>
+        <p class="drawer-sub">Puzzle Escape</p>
 
-        <p class="note">No timers. Think ahead. Enjoy the calm.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary modal-close-btn">Got it</button>
-      </div>
-    </div>
-  </div>
+        <div class="drawer-stats">
+          <div><strong id="stat-completed">0</strong><span>Solved</span></div>
+          <div><strong id="stat-streak">0</strong><span>Streak</span></div>
+          <div><strong id="stat-perfect">0</strong><span>Perfect</span></div>
+        </div>
 
-  <!-- Levels Modal -->
-  <div id="modal-levels" class="modal" role="dialog" aria-labelledby="levels-title" aria-modal="true">
-    <div class="modal-content modal-wide">
-      <button class="modal-close" aria-label="Close">&times;</button>
-      <h2 id="levels-title">Select Level</h2>
-      
-      <div class="levels-controls">
-        <input type="number" id="level-jump" min="1" placeholder="Jump to level..." />
-        <button id="btn-jump" class="btn">Go</button>
-        <button id="btn-next-unsolved" class="btn">Next Unsolved</button>
-      </div>
+        <div class="drawer-actions">
+          <button id="btn-howto" class="drawer-btn">How to Play</button>
+          <button id="btn-levels" class="drawer-btn">Levels</button>
+          <button id="btn-daily" class="drawer-btn">Daily Challenge</button>
+          <button id="btn-achievements" class="drawer-btn">Achievements</button>
+        </div>
 
-      <div class="difficulty-tabs">
-        <button data-tier="all" class="tab active">All</button>
-        <button data-tier="easy" class="tab">Easy (1-200)</button>
-        <button data-tier="medium" class="tab">Medium (201-400)</button>
-        <button data-tier="hard" class="tab">Hard (401-600)</button>
-        <button data-tier="veryhard" class="tab">Very Hard (601-800)</button>
-        <button data-tier="nightmare" class="tab">Nightmare (801+)</button>
-      </div>
-
-      <div id="levels-grid" class="levels-grid">
-        <!-- Populated dynamically by JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Achievements Modal -->
-  <div id="modal-achievements" class="modal" role="dialog" aria-labelledby="achievements-title" aria-modal="true">
-    <div class="modal-content modal-wide">
-      <button class="modal-close" aria-label="Close">&times;</button>
-      <h2 id="achievements-title">Achievements <span id="ach-progress">(0/15)</span></h2>
-      
-      <div id="achievements-grid" class="achievements-grid">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Win Modal -->
-  <div id="modal-win" class="modal" role="dialog" aria-labelledby="win-title" aria-modal="true">
-    <div class="modal-content">
-      <h2 id="win-title">Level Complete! 🎉</h2>
-      <div class="modal-body win-body">
-        <p id="win-message">Beautifully solved.</p>
-        <div id="win-new-achievements" class="new-achievements"></div>
-        <div class="win-stats">
-          <div>Hearts left: <strong id="win-hearts">3</strong>/3</div>
-          <div>Moves: <strong id="win-moves">12</strong></div>
+        <div class="drawer-section">
+          <h3>Settings</h3>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-theme" />
+            <span>Dark theme</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-sound" />
+            <span>Sound effects</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-motion" />
+            <span>Reduce motion</span>
+          </label>
         </div>
       </div>
-      <div class="modal-footer win-footer">
-        <button id="btn-win-replay" class="btn">Replay</button>
-        <button id="btn-win-next" class="btn btn-primary">Next Level →</button>
+    </div>
+
+    <div id="modal-howto" class="modal" role="dialog" aria-labelledby="howto-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <h2 id="howto-title">How to Play</h2>
+        <div class="modal-body">
+          <p>Tap an arrow to <strong>extract it</strong> in the direction it points.</p>
+          <ul>
+            <li>An arrow can only escape if every cell in front of its tip is clear, all the way to the edge.</li>
+            <li>A blocked tap costs you a <span class="heart-inline">&hearts;</span> &mdash; the blocking arrow flashes red.</li>
+            <li>Lose all 3 hearts and the level restarts.</li>
+            <li>Clear the entire grid to advance.</li>
+            <li>Stuck? Press <strong>Hint</strong>.</li>
+          </ul>
+          <p class="note">No timer. No pressure. Just logic.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" data-close>Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-levels" class="modal" role="dialog" aria-labelledby="levels-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <h2 id="levels-title">Levels</h2>
+
+        <div class="levels-controls">
+          <input type="number" id="level-jump" min="1" placeholder="Jump to level…" />
+          <button id="btn-jump" class="btn-secondary">Go</button>
+          <button id="btn-next-unsolved" class="btn-secondary">Next Unsolved</button>
+        </div>
+
+        <div class="difficulty-tabs" role="tablist">
+          <button data-tier="easy" class="tab active" role="tab">Easy</button>
+          <button data-tier="medium" class="tab" role="tab">Medium</button>
+          <button data-tier="hard" class="tab" role="tab">Hard</button>
+          <button data-tier="veryhard" class="tab" role="tab">Very Hard</button>
+          <button data-tier="nightmare" class="tab" role="tab">Nightmare</button>
+        </div>
+
+        <div id="levels-grid" class="levels-grid"></div>
+        <div class="levels-pager">
+          <button id="levels-prev" class="btn-secondary">&larr; Prev</button>
+          <span id="levels-page-label">1–100</span>
+          <button id="levels-next" class="btn-secondary">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-achievements" class="modal" role="dialog" aria-labelledby="achievements-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <h2 id="achievements-title">Achievements <span id="ach-progress" class="ach-counter">(0/15)</span></h2>
+        <div id="achievements-grid" class="achievements-grid"></div>
+      </div>
+    </div>
+
+    <div id="modal-fail" class="modal" role="dialog" aria-labelledby="fail-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <h2 id="fail-title">Out of Hearts</h2>
+        <div class="modal-body">
+          <p>Don't worry &mdash; the arrows are still waiting for you.</p>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-fail-retry" class="btn-primary">Try Again</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Fail Modal -->
-  <div id="modal-fail" class="modal" role="dialog" aria-labelledby="fail-title" aria-modal="true">
-    <div class="modal-content">
-      <h2 id="fail-title">Out of Hearts</h2>
-      <div class="modal-body">
-        <p>The arrows collided. Don't worry — the order is still waiting for you.</p>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-fail-retry" class="btn btn-primary">Try Again</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>
