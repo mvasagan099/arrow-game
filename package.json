@@ -5,7 +5,7 @@
   "type": "module",
   "description": "A minimalist arrow extraction logic puzzle. Vanilla JS, canvas-rendered, procedurally generated levels.",
   "scripts": {
-    "start": "python3 -m http.server 5173 --bind 127.0.0.1",
+    "start": "python3 -m http.server 5173 --bind 0.0.0.0",
     "test":  "node test/smoke.mjs"
   },
   "keywords": [

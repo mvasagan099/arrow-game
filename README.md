@@ -22,6 +22,8 @@ Then visit http://localhost:5173.
 
 That's it — no `npm install`, no build step. Any static HTTP server works; the script just calls `python3 -m http.server`. You can also open `index.html` directly via `file://` if your browser allows ES modules from local files.
 
+The dev server binds to `0.0.0.0`, so other devices on the same network can also reach it at `http://<your-lan-ip>:5173`. On macOS, find your LAN IP with `ipconfig getifaddr en0` (Wi-Fi) or `en1` (wired). macOS Firewall may prompt the first time — accept it. This is plaintext HTTP with no auth; use it only on trusted networks.
+
 To verify the level generator:
 
 ```bash
