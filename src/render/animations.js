@@ -24,7 +24,7 @@ export function makeExtract(arrow) {
   // makes the whole motion 50% slower than the original timing.
   const base = EXTRACT_FLY_MS;
   const extra = Math.min(260, arrow.cells.length * 22);
-  const dur = (base + extra) * 5.0;
+  const dur = (base + extra) * 1.5;
   return {
     kind: 'extract',
     arrowId: arrow.id,

@@ -13,6 +13,7 @@ import { findHint } from './engine/hint.js';
 
 import { setupCanvas, markDirty, startLoop, onResize as onCanvasResize } from './render/loop.js';
 import { resetView, zoomAt } from './render/viewport.js';
+import { invalidatePalette } from './render/canvas.js';
 import { setReduceMotion, makeExtract, makeBlock, makeWiggle, makeWin } from './render/animations.js';
 
 import { attachPointer } from './input/pointer.js';
@@ -116,6 +117,7 @@ startLoop(() => state, () => animations, () => ui);
 /* ----- Theming ----- */
 function applyTheme(theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark');
+  invalidatePalette();
 }
 
 /* ----- Level lifecycle ----- */
