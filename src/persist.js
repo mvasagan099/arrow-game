@@ -30,8 +30,10 @@ function emptyData() {
       streak: 0,
       maxStreak: 0,
       totalCompleted: 0,
-      lastResultKey: null
-    }
+      lastResultKey: null,
+      history: []
+    },
+    tutorials: {}
   };
 }
 
@@ -77,6 +79,8 @@ function migrate(data) {
     data.settings.haptics = true;
   }
   data.daily        = { ...fresh.daily, ...(data.daily || {}) };
+  data.daily.history = Array.isArray(data.daily.history) ? data.daily.history : [];
+  data.tutorials    = data.tutorials || {};
   data.achievements = data.achievements || {};
   if (typeof data.currentLevel !== 'number' || data.currentLevel < 1) data.currentLevel = 1;
   if (typeof data.completedBits !== 'string') data.completedBits = '';

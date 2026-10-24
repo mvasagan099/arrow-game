@@ -31,7 +31,31 @@ export function cloneArrow(a) {
   return {
     id: a.id,
     dir: a.dir,
-    cells: a.cells.map(c => ({ x: c.x, y: c.y }))
+    cells: a.cells.map(c => ({ x: c.x, y: c.y })),
+    isPivot: a.isPivot === true,
+    keyId: a.keyId || null,
+    lockedByKey: a.lockedByKey || null
+  };
+}
+
+/**
+ * Returns a new arrow rotated 90 degrees clockwise around its tail cell (cells[0]).
+ */
+export function getRotatedArrow(a) {
+  const tailCell = a.cells[0];
+  const newDir = (a.dir + 1) % 4;
+  const newCells = a.cells.map(c => {
+    const vx = c.x - tailCell.x;
+    const vy = c.y - tailCell.y;
+    return {
+      x: tailCell.x - vy,
+      y: tailCell.y + vx
+    };
+  });
+  return {
+    ...cloneArrow(a),
+    dir: newDir,
+    cells: newCells
   };
 }
 

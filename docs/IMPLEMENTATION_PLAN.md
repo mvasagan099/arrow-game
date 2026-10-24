@@ -35,16 +35,19 @@ The overall engineering roadmap is structured into eight distinct phases:
 
 ---
 
-### Phase 3: Advanced Gameplay & 2,000+ Level Progression
-- **Status**: Pending
+### Phase 3: Advanced Gameplay & 2,000+ Level Progression (CURRENT)
+- **Status**: Completed
 - **Objectives**:
-  - **Level Progression Expansion**: Scale seeded procedural generation from 1,000 to 2,000+ verified levels.
-  - **Dynamic Obstacles**:
-    - *Fixed Obstacles*: Immovable blocks on higher difficulties.
-    - *Color-Keyed Arrows*: Order-dependent extraction requirements.
-    - *Rotating Arrows*: Pivot points that turn arrows upon activation.
-  - **Daily Challenge Evolution**: Calendar-based history view, monthly completion badges, and recovery tokens.
-  - **Level Packs & Themes**: Themed level collections (Monochrome, Cyberpunk, Forest, Sunset, OLED Pitch Black).
+  - **Six Difficulty Tiers (1 to 2,000 Levels)**: Beginner (1–200), Easy (201–500), Medium (501–900), Hard (901–1300), Expert (1301–1700), Master (1701–2000).
+  - **100% Solvability Validation**: All 2,000 level seeds verified as solvable via automated puzzle solver (`test/validate-all-2000-levels.mjs`).
+  - **Fixed Immovable Obstacles**: Immovable stone pillars blocking raycasts and introducing maze-like routing on Easy+ tiers.
+  - **Color-Keyed Arrows**: Key-and-lock dependency mechanics with accessible colorway and geometric glyph badges (◆ Amber Diamond, ★ Cyan Star, ▲ Amethyst Shield) + padlock indicator.
+  - **Rotating Pivot Arrows**: Strategic arrows featuring circular tail joints that swing 90° clockwise upon tapping when blocked, preserving hearts.
+  - **Automated Puzzle Solver**: High-performance solver (`src/engine/solver.js`) handling raycasts, obstacles, key locks, and pivot rotations.
+  - **Upgraded Level Selection**: Paginated grid (100/page), locked/unlocked state enforcement, completion star badges, and tier progress counters.
+  - **Daily Challenge Offline Evolution**: Deterministic weekday tier rotation, 60-day challenge history tracking, and local streak maintenance.
+  - **Interactive In-App Tutorials**: 7 comprehensive tutorial cards covering basic movement, collisions, undo, hints, obstacles, color-locks, and pivot arrows.
+  - **Save Schema Migration**: Seamless backward-compatible migration supporting tutorial progress and daily challenge history.
 
 ---
 

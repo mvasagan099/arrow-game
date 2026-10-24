@@ -310,25 +310,27 @@ test('Game Solver: Full level playthrough from start to finish via hints', () =>
 
 // 9. Difficulty Generation & Tier Scaling
 test('Difficulty & Tier Parameters: Grid sizes, arrow counts and tier boundaries', () => {
-  // Test tier boundaries
-  assert.equal(tierForLevel(1).key, 'easy');
-  assert.equal(tierForLevel(200).key, 'easy');
-  assert.equal(tierForLevel(201).key, 'medium');
-  assert.equal(tierForLevel(400).key, 'medium');
-  assert.equal(tierForLevel(401).key, 'hard');
-  assert.equal(tierForLevel(600).key, 'hard');
-  assert.equal(tierForLevel(601).key, 'veryhard');
-  assert.equal(tierForLevel(800).key, 'veryhard');
-  assert.equal(tierForLevel(801).key, 'nightmare');
-  assert.equal(tierForLevel(2000).key, 'nightmare');
-  assert.equal(tierForLevel(9999).key, 'nightmare');
+  // Test Phase 3 6-tier boundaries (1 to 2,000 Levels)
+  assert.equal(tierForLevel(1).key, 'beginner');
+  assert.equal(tierForLevel(200).key, 'beginner');
+  assert.equal(tierForLevel(201).key, 'easy');
+  assert.equal(tierForLevel(500).key, 'easy');
+  assert.equal(tierForLevel(501).key, 'medium');
+  assert.equal(tierForLevel(900).key, 'medium');
+  assert.equal(tierForLevel(901).key, 'hard');
+  assert.equal(tierForLevel(1300).key, 'hard');
+  assert.equal(tierForLevel(1301).key, 'expert');
+  assert.equal(tierForLevel(1700).key, 'expert');
+  assert.equal(tierForLevel(1701).key, 'master');
+  assert.equal(tierForLevel(2000).key, 'master');
 
-  // Verify grid sizes
-  assert.equal(TIERS.easy.grid, 28);
-  assert.equal(TIERS.medium.grid, 30);
+  // Verify grid sizes for the 6 tiers
+  assert.equal(TIERS.beginner.grid, 20);
+  assert.equal(TIERS.easy.grid, 24);
+  assert.equal(TIERS.medium.grid, 28);
   assert.equal(TIERS.hard.grid, 32);
-  assert.equal(TIERS.veryhard.grid, 36);
-  assert.equal(TIERS.nightmare.grid, 40);
+  assert.equal(TIERS.expert.grid, 36);
+  assert.equal(TIERS.master.grid, 40);
 
   // Verify level seed determinism
   assert.equal(levelSeed(1), levelSeed(1));

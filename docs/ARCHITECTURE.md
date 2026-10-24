@@ -37,19 +37,20 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 ├── package.json                # Project scripts and metadata
 ├── src/
 │   ├── main.js                 # Entry point, singletons & screen coordinator
-│   ├── config.js               # Centralized THEMES, tiers, directions, achievements
-│   ├── persist.js              # Namespaced localStorage with packed bitmask & theme migrations
+│   ├── config.js               # Centralized THEMES, 6 tiers, directions, color keys
+│   ├── persist.js              # Namespaced localStorage with packed bitmask, history & tutorial migrations
 │   ├── engine/
 │   │   ├── rng.js              # Seeded Mulberry32 PRNG & sampling utilities
-│   │   ├── arrow.js            # Arrow geometry, coordinates & raycasting
-│   │   ├── generator.js        # Seeded reverse-construction puzzle generator
-│   │   ├── rules.js            # Raycast extraction validation & blocker check
-│   │   ├── state.js            # Game state reducers (tap, undo, restart)
+│   │   ├── arrow.js            # Arrow geometry, coordinates, rotation math & raycasting
+│   │   ├── generator.js        # Reverse-construction puzzle generator with 6 tiers & obstacles
+│   │   ├── rules.js            # Raycast extraction, obstacle blocker check & pivot rotation
+│   │   ├── state.js            # Game state reducers (tap, rotate, undo, restart)
+│   │   ├── solver.js           # Automated puzzle solver & solvability verifier
 │   │   └── hint.js             # Solvability hint finder
 │   ├── render/
 │   │   ├── loop.js             # Dirty-flag requestAnimationFrame loop, DPR & visibility pause
 │   │   ├── viewport.js         # Pan/zoom math, coordinate transformations
-│   │   ├── canvas.js           # Theme-aware grid, arrowheads, hint highlights & particle render pass
+│   │   ├── canvas.js           # Theme-aware grid, obstacles, color-key badges, pivot joints & particles
 │   │   ├── animations.js       # Snake unfurl exit, red pulse, wiggle, win
 │   │   └── particles.js        # Zero-allocation pooled particle system (140 pool)
 │   ├── input/
@@ -59,22 +60,25 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 │   │   ├── home.js             # Home screen controller & progression hero CTA
 │   │   ├── home-bg.js          # Ambient drifting ghost arrows canvas
 │   │   ├── settings.js         # Settings & theme selector modal controller
+│   │   ├── tutorials.js        # Interactive 7-topic visual tutorial guide & progress tracker
 │   │   ├── topbar.js           # Header hearts, level number, tier badge, pause
 │   │   ├── actions.js          # Bottom action bar (Undo, Hint, Center, Restart)
 │   │   ├── drawer.js           # Left drawer menu, stats, settings toggles
 │   │   ├── modals.js           # Modal stack manager, win card, fail card, pause, toast
-│   │   ├── levels.js           # Paginated level select grid (1-9999)
+│   │   ├── levels.js           # Paginated 2,000-level select grid with locking & stats
 │   │   ├── achievements.js     # Achievement evaluation & notifications
-│   │   └── daily.js            # Daily UTC challenge & streak rollover
+│   │   └── daily.js            # Daily UTC challenge, streak rollover & 60-day history
 │   └── audio/
-│       ├── sounds.js           # Procedural Web Audio API sound effects
-│       └── haptics.js          # Cross-platform vibration abstraction
+│       ├── sounds.js           # Procedural Web Audio API sound effects (sfxPivot, sfxUnlock, sfxObstacle)
+│       └── haptics.js          # Cross-platform vibration abstraction (hapticRotate, hapticUnlock)
 └── test/
-    ├── smoke.mjs               # Procedural level solvability validation
+    ├── smoke.mjs               # Procedural level solvability validation across 6 tiers
     ├── engine.test.mjs         # Core mechanics, movement, blocking, undo tests
     ├── persistence.test.mjs    # Storage migration & bit packing tests
     ├── viewport.test.mjs       # Mobile responsive layout & coordinates tests
     ├── phase2.test.mjs         # Theme palettes, particles, haptics, WCAG contrast
+    ├── phase3.test.mjs         # Advanced mechanics, obstacles, color keys, pivots, solver
+    ├── validate-all-2000-levels.mjs # Exhaustive 2,000 level seeds validation suite
     ├── benchmark.mjs           # Generation & solver performance benchmark
     └── run-all.mjs             # Unified automated test runner
 ```
@@ -204,3 +208,37 @@ To prevent runtime garbage collection jank on mobile devices:
 - In `src/render/loop.js`, a `visibilitychange` listener automatically suspends the `requestAnimationFrame` loop when the application tab/screen is hidden (`document.hidden`).
 - When resumed, the dirty flag is reasserted without delta time accumulation jumps.
 - When no animations, interactions, or particles are active, the rendering loop sleeps completely at 0% CPU consumption.
+
+---
+
+## 9. Advanced Mechanics, 6 Tiers & Solver Architecture (Phase 3)
+
+### 9.1 Six Difficulty Tiers (1 to 2,000 Levels)
+Progression is structured into six calibrated tiers:
+- **Beginner (1–200)**: Grid $20 \times 20$, 18–32 arrows. No obstacles, no locks, no pivots. High-accessibility onboarding.
+- **Easy (201–500)**: Grid $24 \times 24$, 32–50 arrows. Introduces 1–2 fixed obstacles.
+- **Medium (501–900)**: Grid $28 \times 28$, 50–75 arrows. Introduces color-keyed lock pairs + 2–3 obstacles.
+- **Hard (901–1300)**: Grid $32 \times 32$, 75–105 arrows. Introduces rotating pivot arrows + color locks + 3–4 obstacles.
+- **Expert (1301–1700)**: Grid $36 \times 36$, 105–140 arrows. High density with multiple obstacles, key pairs, and pivots.
+- **Master (1701–2000)**: Grid $40 \times 40$, 135–175 arrows. Complex interlocking dependencies with up to 8 obstacles.
+
+### 9.2 Mechanics Architecture
+1. **Fixed Immovable Obstacles**:
+   - Stored in `state.obstacles = [{ id, x, y }]`.
+   - Placed prior to arrow generation in reverse construction, ensuring placed arrows have clear escape trajectories past obstacles.
+   - Raycast collisions detect obstacles and trigger `sfxObstacle()` with radial sparks.
+2. **Color-Keyed Arrows**:
+   - Key arrows carry `keyId` (e.g. `'amber'`, `'cyan'`, `'amethyst'`); locked arrows carry `lockedByKey`.
+   - During reverse construction, key arrows are placed at late indices ($k \ge \frac{2}{3} N$) and locked arrows at early indices ($l \le \frac{1}{3} N$), guaranteeing key arrows are naturally freed first.
+   - Accessible rendering includes both high-contrast colorways and geometric glyph badges (◆ Diamond, ★ Star, ▲ Shield), plus padlock overlay 🔒 on locked arrows.
+3. **Rotating Pivot Arrows**:
+   - Arrows designated `isPivot: true` feature a circular tail joint ring and `⟳` glyph.
+   - When tapped while blocked forward, the engine tests clockwise 90° rotation:
+     $$v_x' = -v_y, \quad v_y' = v_x$$
+   - If rotated cells are unoccupied and within bounds, the arrow rotates without losing hearts.
+   - State reducers and circular history buffer support full multi-step undo for rotations.
+
+### 9.3 Automated Puzzle Solver (`src/engine/solver.js`)
+- Combines greedy extraction of unobstructed arrows with priority-queue memoized exploration for pivot rotations.
+- Evaluates puzzle solvability deterministically, verifying 100% of all 2,000 level seeds.
+- Includes deterministic fallbacks (`(seed ^ 0xA5A5A5A5) >>> 0`) ensuring no level is ever released without automated solver validation.

@@ -30,6 +30,7 @@ import { initActions, setUndoEnabled } from './ui/actions.js';
 import { initModals, open as openModal, close as closeModal, closeTop as closeTopModal,
          anyOpen as anyModalOpen, toast, showLevelComplete, hideLevelComplete, showLevelFailed, showPause } from './ui/modals.js';
 import { initLevels, openLevels } from './ui/levels.js';
+import { initTutorials, openTutorials } from './ui/tutorials.js';
 import { initAchievements, renderAchievementsGrid, evaluateAchievements, notifyUnlock } from './ui/achievements.js';
 import { todayKey, recordDailyCompletion, rolloverDailyStreak, dailyAlreadyCompleted } from './ui/daily.js';
 
@@ -91,7 +92,13 @@ initHome({
     updateSettingsUI(data.settings);
     openModal('modal-settings');
   },
-  onHowto: () => openModal('modal-howto')
+  onHowto: () => openTutorials()
+});
+
+// Interactive Tutorials Setup
+initTutorials({
+  getData: () => data,
+  saveData: d => persist.save(d)
 });
 
 // Settings Modal wiring
@@ -122,7 +129,7 @@ initSettings({
   },
   onHowto: () => {
     closeModal('modal-settings');
-    openModal('modal-howto');
+    openTutorials();
   }
 }, () => data);
 
@@ -286,13 +293,46 @@ function doExtract(arrowId) {
     const palette = readPalette();
     emitExtractParticles(cc.x, cc.y, result.arrow.dir, palette.accent || palette.ink);
 
+    // If key arrow escaped, notify unlock
+    if (result.unlockedKey) {
+      setTimeout(() => {
+        sfx.sfxUnlock();
+        haptics.hapticUnlock();
+        toast(`Key cleared! Matching arrows unlocked.`, 1600);
+      }, 120);
+    }
+
     if (ui.hintArrowId === arrowId) clearHint();
-  } else if (result.kind === 'block') {
-    animations.push(makeBlock(result.blocker.id));
+  } else if (result.kind === 'rotate') {
+    sfx.sfxPivot();
+    haptics.hapticRotate();
+    const tried = result.arrow;
+    animations.push(makeWiggle(tried.id, tried.dir));
+    toast('Pivot arrow rotated 90°', 1100);
+    if (ui.hintArrowId === arrowId) clearHint();
+  } else if (result.kind === 'locked') {
     const tried = result.arrow;
     animations.push(makeWiggle(tried.id, tried.dir));
     renderHearts(result.heartsRemaining, true);
     sfx.sfxBlock();
+    haptics.hapticBlock();
+    setTimeout(() => sfx.sfxHeart(), 80);
+    toast(`Arrow is locked! Free the ${result.keyId.toUpperCase()} key first.`, 1800);
+
+    if (state.levelFailed) handleLevelFailed('All hearts lost! Attempted to move locked arrow.');
+  } else if (result.kind === 'block') {
+    if (result.blocker && result.blocker.id) {
+      animations.push(makeBlock(result.blocker.id));
+    }
+    const tried = result.arrow;
+    animations.push(makeWiggle(tried.id, tried.dir));
+    renderHearts(result.heartsRemaining, true);
+
+    if (result.isObstacle) {
+      sfx.sfxObstacle();
+    } else {
+      sfx.sfxBlock();
+    }
     haptics.hapticBlock();
     setTimeout(() => sfx.sfxHeart(), 80);
 
@@ -305,20 +345,7 @@ function doExtract(arrowId) {
     }
 
     if (state.levelFailed) {
-      data.stats.currentStreak = 0;
-      persist.save(data);
-      updateHomeView(data);
-      haptics.hapticFail();
-      sfx.sfxFail();
-
-      setTimeout(() => {
-        showLevelFailed('All hearts lost! Blocked by other arrows.', {
-          onRetry: doRestart,
-          onHome: () => {
-            showHome(data);
-          }
-        });
-      }, 340);
+      handleLevelFailed(result.isObstacle ? 'All hearts lost! Blocked by immovable obstacle.' : 'All hearts lost! Blocked by other arrows.');
     }
   }
 
@@ -326,6 +353,23 @@ function doExtract(arrowId) {
   setProgress(progressFraction(state));
   if (state.levelComplete) onLevelComplete();
   markDirty();
+}
+
+function handleLevelFailed(reason) {
+  data.stats.currentStreak = 0;
+  persist.save(data);
+  updateHomeView(data);
+  haptics.hapticFail();
+  sfx.sfxFail();
+
+  setTimeout(() => {
+    showLevelFailed(reason, {
+      onRetry: doRestart,
+      onHome: () => {
+        showHome(data);
+      }
+    });
+  }, 340);
 }
 
 function doUndo() {

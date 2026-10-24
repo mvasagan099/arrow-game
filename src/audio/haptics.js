@@ -6,6 +6,8 @@ export const HAPTIC_PATTERNS = {
   tap: 12,
   extract: 18,
   block: [30, 40, 30],
+  rotate: 15,
+  unlock: [20, 30],
   win: [35, 45, 35, 50, 80],
   fail: [80, 50, 100]
 };
@@ -43,6 +45,16 @@ export function hapticExtract() {
 /** Double jarring pulse for hitting a blocking arrow */
 export function hapticBlock() {
   vibrate(HAPTIC_PATTERNS.block);
+}
+
+/** Crisp click for pivot arrow rotation */
+export function hapticRotate() {
+  vibrate(HAPTIC_PATTERNS.rotate);
+}
+
+/** Ascending pulse when color key unlocks locked arrows */
+export function hapticUnlock() {
+  vibrate(HAPTIC_PATTERNS.unlock);
 }
 
 /** Celebratory rhythmic pattern for level solve */

@@ -19,6 +19,14 @@ export function recordDailyCompletion(data, dateKey) {
   const daily = data.daily;
   // Already completed today? no-op.
   if (daily.lastResultKey === dateKey) return false;
+
+  // Track history
+  if (!Array.isArray(daily.history)) daily.history = [];
+  if (!daily.history.includes(dateKey)) {
+    daily.history.push(dateKey);
+    if (daily.history.length > 60) daily.history.shift();
+  }
+
   if (daily.lastDateKey === yesterdayKey()) {
     daily.streak = (daily.streak || 0) + 1;
   } else {
@@ -29,6 +37,10 @@ export function recordDailyCompletion(data, dateKey) {
   daily.lastDateKey = dateKey;
   daily.lastResultKey = dateKey;
   return true;
+}
+
+export function getDailyHistory(data) {
+  return data.daily?.history || [];
 }
 
 /* If we missed a day, drop the streak. Call on startup. */

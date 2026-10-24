@@ -7,7 +7,8 @@
    Run with: node test/smoke.mjs */
 
 import { generateLevel, generateDaily } from '../src/engine/generator.js';
-import { TIER_ORDER, TIERS, DIRS } from '../src/config.js';
+import { TIER_ORDER, TIERS } from '../src/config.js';
+import { solvePuzzle } from '../src/engine/solver.js';
 
 let failures = 0;
 let total = 0;
@@ -58,44 +59,30 @@ function pickSampleLevels(tier) {
 }
 
 function validatePuzzle(puzzle, tier) {
-  const { grid, arrows } = puzzle;
+  const { grid, arrows, obstacles = [] } = puzzle;
   if (arrows.length < Math.floor(tier.arrowMin * 0.7)) {
     throw new Error(`only ${arrows.length} arrows (target >= ${tier.arrowMin})`);
   }
-  // No two arrows share a cell.
+  // No two arrows or obstacles share a cell.
   const occ = new Map();
+  for (const o of obstacles) {
+    const k = o.y * grid + o.x;
+    occ.set(k, o.id);
+  }
   for (const a of arrows) {
     for (const c of a.cells) {
       if (c.x < 0 || c.x >= grid || c.y < 0 || c.y >= grid) {
         throw new Error(`arrow ${a.id} out of bounds at ${c.x},${c.y}`);
       }
       const k = c.y * grid + c.x;
-      if (occ.has(k)) throw new Error(`overlap at ${c.x},${c.y} (arrows ${occ.get(k)} & ${a.id})`);
-      occ.set(k, a.id);
+      if (occ.has(k)) throw new Error(`overlap at ${c.x},${c.y} (${occ.get(k)} & arrow ${a.id})`);
+      occ.set(k, `arrow-${a.id}`);
     }
   }
-  // Reverse placement order is a valid extraction sequence.
-  const remaining = new Map();
-  for (const a of arrows) remaining.set(a.id, a);
-  for (let i = arrows.length - 1; i >= 0; i--) {
-    const a = arrows[i];
-    // Build occupancy of remaining arrows excluding `a`.
-    const liveOcc = new Set();
-    for (const other of remaining.values()) {
-      if (other.id === a.id) continue;
-      for (const c of other.cells) liveOcc.add(c.y * grid + c.x);
-    }
-    // Walk forward from tip; ensure cells are unoccupied.
-    const tip = a.cells[a.cells.length - 1];
-    const d = DIRS[a.dir];
-    let x = tip.x + d.dx, y = tip.y + d.dy;
-    while (x >= 0 && x < grid && y >= 0 && y < grid) {
-      if (liveOcc.has(y * grid + x)) {
-        throw new Error(`arrow ${a.id} not extractable at its turn — blocked at ${x},${y}`);
-      }
-      x += d.dx;
-      y += d.dy;
-    }
-    remaining.delete(a.id);
+
+  // Solvability verified via full solver
+  const sol = solvePuzzle(puzzle, 1200);
+  if (!sol.solved) {
+    throw new Error(`Puzzle level ${puzzle.level} was not solved by solver (remaining: ${sol.remainingArrows})`);
   }
 }

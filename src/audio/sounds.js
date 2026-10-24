@@ -85,6 +85,18 @@ export function sfxFail() {
   chord([369.99, 311.13, 261.63], { type: 'sawtooth', dur: 0.16, decay: 0.22, gain: 0.24, slide: -40 });
 }
 
+export function sfxPivot() {
+  blip({ freq: 650, type: 'triangle', dur: 0.035, decay: 0.05, gain: 0.25, slide: 140 });
+}
+
+export function sfxUnlock() {
+  chord([659.25, 880.00], { type: 'sine', dur: 0.08, decay: 0.14, gain: 0.26 });
+}
+
+export function sfxObstacle() {
+  blip({ freq: 120, type: 'square', dur: 0.07, decay: 0.12, gain: 0.32, slide: -45 });
+}
+
 export function sfxAchievement() {
   chord([659.25, 783.99, 987.77, 1318.51], { type: 'sine', dur: 0.10, decay: 0.22, gain: 0.30 });
 }

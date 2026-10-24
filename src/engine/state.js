@@ -4,9 +4,10 @@
 
 import { HEARTS_MAX } from '../config.js';
 import { cloneArrow } from './arrow.js';
-import { tryExtract } from './rules.js';
+import { tryExtract, canRotateArrow } from './rules.js';
 
 export function createGameState(puzzle, options = {}) {
+  const obstacles = (puzzle.obstacles || []).map(o => ({ ...o }));
   return {
     level: puzzle.level,
     tier: puzzle.tier,
@@ -17,6 +18,8 @@ export function createGameState(puzzle, options = {}) {
     arrows: puzzle.arrows.map(cloneArrow),
     initialArrows: puzzle.arrows.map(cloneArrow),
     initialCount: puzzle.arrows.length,
+    obstacles,
+    initialObstacles: obstacles.map(o => ({ ...o })),
 
     hearts: HEARTS_MAX,
     moves: 0,
@@ -46,21 +49,26 @@ function snapshot(state) {
   };
 }
 
-/* Attempt to extract the arrow with id=arrowId.
+/* Attempt to extract or interact with the arrow with id=arrowId.
    Returns a descriptor of what happened:
-     { kind:'extract', arrow }   — success
-     { kind:'block', arrow, blocker, blockerCell, heartsRemaining } — wrong tap
-     { kind:'noop' }              — game over / level already complete */
+     { kind:'extract', arrow, unlockedKey }
+     { kind:'rotate', arrow, prevDir, newDir }
+     { kind:'locked', arrow, keyId, heartsRemaining }
+     { kind:'block', arrow, blocker, blockerCell, isObstacle, heartsRemaining }
+     { kind:'noop' } */
 export function applyTap(state, arrowId) {
   if (state.levelComplete || state.levelFailed) return { kind: 'noop' };
   const arrow = state.arrows.find(a => a.id === arrowId);
   if (!arrow) return { kind: 'noop' };
 
-  const res = tryExtract(state.arrows, arrow, state.grid);
-  state.history.push(snapshot(state));
-  if (state.history.length > 64) state.history.shift();
+  const obstacles = state.obstacles || [];
+  const res = tryExtract(state.arrows, arrow, state.grid, obstacles);
 
+  // 1. Success: arrow escapes!
   if (res.ok) {
+    state.history.push(snapshot(state));
+    if (state.history.length > 64) state.history.shift();
+
     state.arrows = state.arrows.filter(a => a.id !== arrowId);
     state.moves++;
     state.extractCount++;
@@ -68,8 +76,49 @@ export function applyTap(state, arrowId) {
       state.levelComplete = true;
       state.finishedAt = performance.now();
     }
-    return { kind: 'extract', arrow };
+    return { kind: 'extract', arrow, unlockedKey: arrow.keyId || null };
   }
+
+  // 2. Color-Locked: locked by a key arrow that has not yet escaped
+  if (res.locked) {
+    state.history.push(snapshot(state));
+    if (state.history.length > 64) state.history.shift();
+
+    state.moves++;
+    state.missCount++;
+    state.hearts--;
+    if (state.hearts <= 0) state.levelFailed = true;
+    return {
+      kind: 'locked',
+      arrow,
+      keyId: res.keyId,
+      heartsRemaining: state.hearts
+    };
+  }
+
+  // 3. Obstructed: check if arrow is a Pivot Arrow that can rotate
+  if (arrow.isPivot) {
+    const rotCheck = canRotateArrow(arrow, state.grid, state.arrows, obstacles);
+    if (rotCheck.ok) {
+      state.history.push(snapshot(state));
+      if (state.history.length > 64) state.history.shift();
+
+      const prevDir = arrow.dir;
+      arrow.dir = rotCheck.rotated.dir;
+      arrow.cells = rotCheck.rotated.cells;
+      state.moves++;
+      return {
+        kind: 'rotate',
+        arrow,
+        prevDir,
+        newDir: arrow.dir
+      };
+    }
+  }
+
+  // 4. Standard collision block (against arrow or obstacle)
+  state.history.push(snapshot(state));
+  if (state.history.length > 64) state.history.shift();
 
   state.moves++;
   state.missCount++;
@@ -80,6 +129,7 @@ export function applyTap(state, arrowId) {
     arrow,
     blocker: res.blocker,
     blockerCell: res.blockerCell,
+    isObstacle: res.isObstacle === true,
     heartsRemaining: state.hearts
   };
 }

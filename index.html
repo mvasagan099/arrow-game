@@ -299,18 +299,36 @@
         </div>
 
         <div class="settings-section">
-          <button id="btn-settings-howto" class="btn-secondary full-width">How to Play Tutorial</button>
+          <button id="btn-settings-howto" class="btn-secondary full-width">Interactive Tutorials & Guide</button>
         </div>
 
         <!-- Game Info & Open Source Notice -->
         <div class="settings-footer-info">
-          <p class="app-version">Arrow Escape v1.1.0 • Phase 2</p>
+          <p class="app-version">Arrow Escape v1.2.0 • Phase 3</p>
           <p class="app-credits">MIT Licensed • 100% Offline</p>
         </div>
       </div>
     </div>
 
-    <!-- MODAL: HOW TO PLAY -->
+    <!-- MODAL: INTERACTIVE TUTORIALS & MECHANICS GUIDE -->
+    <div id="modal-tutorials" class="modal" role="dialog" aria-labelledby="tut-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide tutorial-content">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <div class="tutorial-header">
+          <span id="tut-step-badge" class="tut-step-badge">Step 1 of 7</span>
+          <h2 id="tut-title">Basic Arrow Movement</h2>
+        </div>
+        <div id="tut-visual" class="tut-visual-container"></div>
+        <p id="tut-desc" class="tut-desc-text"></p>
+        <div class="tut-footer-controls">
+          <button id="tut-btn-prev" class="btn-secondary">&larr; Previous</button>
+          <button id="tut-btn-next" class="btn-primary">Next Step &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HOW TO PLAY QUICK SUMMARY -->
     <div id="modal-howto" class="modal" role="dialog" aria-labelledby="howto-title" aria-modal="true" aria-hidden="true">
       <div class="modal-scrim" data-close></div>
       <div class="modal-content">
@@ -321,9 +339,11 @@
           <ul>
             <li>An arrow can only escape if every cell in front of its tip is clear to the grid edge.</li>
             <li>A blocked tap costs you a <span class="heart-inline">&hearts;</span> &mdash; the blocking arrow briefly flashes.</li>
+            <li>Immovable stone obstacles block arrows permanently.</li>
+            <li>Color-keyed arrows unlock once their matching Key arrow escapes.</li>
+            <li>Pivot arrows rotate 90° clockwise when blocked.</li>
             <li>Lose all 3 hearts and the level restarts.</li>
             <li>Clear the entire grid to advance!</li>
-            <li>Pinch to zoom, drag to pan, and press <strong>Hint</strong> when stuck.</li>
           </ul>
           <p class="note">No timer. No pressure. Pure logic.</p>
         </div>
@@ -333,7 +353,7 @@
       </div>
     </div>
 
-    <!-- MODAL: LEVEL SELECT -->
+    <!-- MODAL: LEVEL SELECT (2,000 Levels across 6 Tiers) -->
     <div id="modal-levels" class="modal" role="dialog" aria-labelledby="levels-title" aria-modal="true" aria-hidden="true">
       <div class="modal-scrim" data-close></div>
       <div class="modal-content modal-wide">
@@ -341,17 +361,22 @@
         <h2 id="levels-title">Levels</h2>
 
         <div class="levels-controls">
-          <input type="number" id="level-jump" min="1" placeholder="Jump to level…" />
+          <input type="number" id="level-jump" min="1" max="2000" placeholder="Jump to level…" />
           <button id="btn-jump" class="btn-secondary">Go</button>
           <button id="btn-next-unsolved" class="btn-secondary">Next Unsolved</button>
         </div>
 
         <div class="difficulty-tabs" role="tablist">
-          <button data-tier="easy" class="tab active" role="tab">Easy</button>
+          <button data-tier="beginner" class="tab active" role="tab">Beginner</button>
+          <button data-tier="easy" class="tab" role="tab">Easy</button>
           <button data-tier="medium" class="tab" role="tab">Medium</button>
           <button data-tier="hard" class="tab" role="tab">Hard</button>
-          <button data-tier="veryhard" class="tab" role="tab">Very Hard</button>
-          <button data-tier="nightmare" class="tab" role="tab">Nightmare</button>
+          <button data-tier="expert" class="tab" role="tab">Expert</button>
+          <button data-tier="master" class="tab" role="tab">Master</button>
+        </div>
+
+        <div class="tier-stats-wrap">
+          <span id="tier-stats-badge" class="tier-stats-badge">0 / 200 Solved (0%)</span>
         </div>
 
         <div id="levels-grid" class="levels-grid"></div>

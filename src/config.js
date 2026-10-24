@@ -1,7 +1,7 @@
 /* Configuration: tiers, directions, achievements, storage keys.
    Pure data, no DOM/state. Imported by everything. */
 
-export const MAX_LEVEL = 9999;
+export const MAX_LEVEL = 2000;
 
 /* Directions
      0 = Up, 1 = Right, 2 = Down, 3 = Left
@@ -14,49 +14,73 @@ export const DIRS = [
   { dx: -1, dy:  0, rot:  Math.PI,      name: 'left' }
 ];
 
-/* Tier table — same difficulty progression as the previous implementation,
-   tuned so each tier feels like a meaningful step up.
-   Index 0 of *Weights is unused; the array index equals the value
-   it weights (so lengthWeights[3] = weight of length 3). */
+/* Six Difficulty Tiers (1 to 2,000 Levels)
+   Tuned for smooth, gradual progression from pure foundational puzzles
+   to high-density puzzles with obstacles, color-locks, and rotating pivots. */
 export const TIERS = {
+  beginner: {
+    start: 1, end: 200, grid: 20,
+    arrowMin: 18, arrowMax: 32,
+    lengthWeights: [0, 8,  28, 36, 20, 8],
+    bendWeights:   [70, 25, 5],
+    obstaclesMax: 0,
+    colorKeysMax: 0,
+    pivotsMax: 0,
+    label: 'Beginner', cssClass: 'beginner'
+  },
   easy: {
-    start: 1, end: 200, grid: 28,
-    arrowMin: 40, arrowMax: 60,
-    lengthWeights: [0, 6,  20, 32, 25, 12, 4,  1],
-    bendWeights:   [50, 38, 12],
+    start: 201, end: 500, grid: 24,
+    arrowMin: 32, arrowMax: 50,
+    lengthWeights: [0, 6,  22, 32, 24, 12, 4],
+    bendWeights:   [50, 35, 15],
+    obstaclesMax: 2,
+    colorKeysMax: 0,
+    pivotsMax: 0,
     label: 'Easy', cssClass: 'easy'
   },
   medium: {
-    start: 201, end: 400, grid: 30,
-    arrowMin: 60, arrowMax: 85,
-    lengthWeights: [0, 4,  14, 26, 26, 18, 8,  3,  1],
-    bendWeights:   [25, 45, 25, 5],
+    start: 501, end: 900, grid: 28,
+    arrowMin: 50, arrowMax: 75,
+    lengthWeights: [0, 4,  16, 26, 26, 18, 8,  2],
+    bendWeights:   [30, 45, 20, 5],
+    obstaclesMax: 3,
+    colorKeysMax: 1,
+    pivotsMax: 0,
     label: 'Medium', cssClass: 'medium'
   },
   hard: {
-    start: 401, end: 600, grid: 32,
-    arrowMin: 85, arrowMax: 115,
-    lengthWeights: [0, 2,  10, 22, 28, 20, 12, 5,  1],
-    bendWeights:   [10, 30, 35, 20, 5],
+    start: 901, end: 1300, grid: 32,
+    arrowMin: 75, arrowMax: 105,
+    lengthWeights: [0, 2,  12, 22, 28, 20, 12, 4],
+    bendWeights:   [15, 35, 35, 15],
+    obstaclesMax: 4,
+    colorKeysMax: 2,
+    pivotsMax: 2,
     label: 'Hard', cssClass: 'hard'
   },
-  veryhard: {
-    start: 601, end: 800, grid: 36,
-    arrowMin: 115, arrowMax: 150,
-    lengthWeights: [0, 1,  6,  18, 25, 24, 16, 8,  2],
-    bendWeights:   [5,  20, 30, 28, 12, 5],
-    label: 'Very Hard', cssClass: 'veryhard'
+  expert: {
+    start: 1301, end: 1700, grid: 36,
+    arrowMin: 105, arrowMax: 140,
+    lengthWeights: [0, 1,  8,  18, 26, 24, 15, 6,  2],
+    bendWeights:   [8,  25, 32, 25, 10],
+    obstaclesMax: 6,
+    colorKeysMax: 2,
+    pivotsMax: 3,
+    label: 'Expert', cssClass: 'expert'
   },
-  nightmare: {
-    start: 801, end: Infinity, grid: 40,
-    arrowMin: 150, arrowMax: 190,
-    lengthWeights: [0, 1,  4,  12, 20, 24, 20, 12, 5,  2],
-    bendWeights:   [3,  12, 25, 30, 18, 8,  4],
-    label: 'Nightmare', cssClass: 'nightmare'
+  master: {
+    start: 1701, end: 2000, grid: 40,
+    arrowMin: 135, arrowMax: 175,
+    lengthWeights: [0, 1,  4,  14, 22, 24, 20, 10, 5],
+    bendWeights:   [5,  15, 28, 32, 15, 5],
+    obstaclesMax: 8,
+    colorKeysMax: 3,
+    pivotsMax: 4,
+    label: 'Master', cssClass: 'master'
   }
 };
 
-export const TIER_ORDER = ['easy', 'medium', 'hard', 'veryhard', 'nightmare'];
+export const TIER_ORDER = ['beginner', 'easy', 'medium', 'hard', 'expert', 'master'];
 
 export function tierForLevel(level) {
   for (const key of TIER_ORDER) {
@@ -66,6 +90,35 @@ export function tierForLevel(level) {
   const last = TIER_ORDER[TIER_ORDER.length - 1];
   return { key: last, ...TIERS[last] };
 }
+
+/* Color-Key Definitions (Accessible high-contrast palette + shape glyphs) */
+export const COLOR_KEYS = {
+  amber: {
+    id: 'amber',
+    name: 'Amber Diamond',
+    color: '#d97706',
+    darkColor: '#fbbf24',
+    glyph: '◆',
+    ariaLabel: 'Amber Key'
+  },
+  cyan: {
+    id: 'cyan',
+    name: 'Cyan Star',
+    color: '#0284c7',
+    darkColor: '#38bdf8',
+    glyph: '★',
+    ariaLabel: 'Cyan Key'
+  },
+  amethyst: {
+    id: 'amethyst',
+    name: 'Amethyst Shield',
+    color: '#9333ea',
+    darkColor: '#c084fc',
+    glyph: '▲',
+    ariaLabel: 'Amethyst Key'
+  }
+};
+export const COLOR_KEY_ORDER = ['amber', 'cyan', 'amethyst'];
 
 /* Game tuning */
 export const HEARTS_MAX = 3;
@@ -187,10 +240,11 @@ export const ACHIEVEMENTS = [
   { id: 'streak5',       title: 'On a Roll',          desc: 'Win-streak of 5',                       icon: 'zap',      test: s => s.stats.maxStreak  >= 5  },
   { id: 'streak25',      title: 'Unstoppable',        desc: 'Win-streak of 25',                      icon: 'bolt',     test: s => s.stats.maxStreak  >= 25 },
   { id: 'streak100',     title: 'Legendary Streak',   desc: 'Win-streak of 100',                     icon: 'comet',    test: s => s.stats.maxStreak  >= 100 },
-  { id: 'tierMedium',    title: 'Stepping Up',        desc: 'Reach the Medium tier',                 icon: 'arrow',    test: s => s.stats.maxLevel  >= 201 },
-  { id: 'tierHard',      title: 'Hardcore',           desc: 'Reach the Hard tier',                   icon: 'arrow',    test: s => s.stats.maxLevel  >= 401 },
-  { id: 'tierVeryHard',  title: 'Stoic',              desc: 'Reach the Very Hard tier',              icon: 'arrow',    test: s => s.stats.maxLevel  >= 601 },
-  { id: 'tierNightmare', title: 'Into the Nightmare', desc: 'Reach the Nightmare tier',              icon: 'skull',    test: s => s.stats.maxLevel  >= 801 },
+  { id: 'tierEasy',      title: 'Stepping Up',        desc: 'Reach the Easy tier',                   icon: 'arrow',    test: s => s.stats.maxLevel  >= 201 },
+  { id: 'tierMedium',    title: 'Focused Mind',       desc: 'Reach the Medium tier',                 icon: 'arrow',    test: s => s.stats.maxLevel  >= 501 },
+  { id: 'tierHard',      title: 'Hardcore',           desc: 'Reach the Hard tier',                   icon: 'arrow',    test: s => s.stats.maxLevel  >= 901 },
+  { id: 'tierExpert',    title: 'Stoic Master',       desc: 'Reach the Expert tier',                 icon: 'arrow',    test: s => s.stats.maxLevel  >= 1301 },
+  { id: 'tierMaster',    title: 'Grandmaster',        desc: 'Reach the Master tier',                 icon: 'skull',    test: s => s.stats.maxLevel  >= 1701 },
   { id: 'noHint',        title: 'No Help Needed',     desc: 'Clear a level without using a hint',    icon: 'eye',      test: s => s.stats.cleanClears >= 1 },
   { id: 'perfect',       title: 'Flawless',           desc: 'Clear a level without losing a heart',  icon: 'shield',   test: s => s.stats.perfectClears >= 1 },
   { id: 'daily7',        title: 'Weekly Habit',       desc: 'Complete 7 daily challenges',           icon: 'sun',      test: s => s.dailyStats.totalCompleted >= 7 },

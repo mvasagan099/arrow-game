@@ -1121,6 +1121,100 @@ input {
   border-color: var(--accent);
 }
 
+.lvl-cell.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--bg-soft);
+  border-style: dashed;
+}
+
+.lvl-star {
+  font-size: 10px;
+  color: #facc15;
+  margin-right: 2px;
+}
+
+.lvl-lock {
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+.tier-stats-wrap {
+  display: flex;
+  justify-content: center;
+  margin: -6px 0 10px;
+}
+
+.tier-stats-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+
+/* Tutorials Modal */
+.tutorial-content {
+  max-width: 480px;
+  padding: 22px;
+}
+
+.tutorial-header {
+  margin-bottom: 12px;
+}
+
+.tut-step-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.tut-visual-container {
+  width: 100%;
+  height: 130px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0 14px;
+  overflow: hidden;
+}
+
+.tut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tut-desc-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  min-height: 64px;
+}
+
+.tut-footer-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.tut-footer-controls button {
+  flex: 1;
+}
+
 .lvl-cell.current {
   outline: 2px solid var(--hint);
   outline-offset: 2px;

@@ -3,7 +3,7 @@
    glow, the hover ring, and delegates animated effects to the animation
    layer. Stateless beyond a few cached colors. */
 
-import { DIRS, THEMES, DEFAULT_THEME } from '../config.js';
+import { DIRS, THEMES, DEFAULT_THEME, COLOR_KEYS } from '../config.js';
 import { getGeom, cellCenter } from './viewport.js';
 import { drawAnimations } from './animations.js';
 import { updateAndDrawParticles } from './particles.js';
@@ -49,6 +49,7 @@ export function renderFrame(ctx, state, animations, ui, dpr, cssW, cssH, dtMs = 
   const geom = getGeom(state, cssW, cssH);
 
   drawGrid(ctx, geom, palette);
+  drawObstacles(ctx, geom, state.obstacles, palette);
   drawArrows(ctx, geom, state, animations, ui, palette);
   drawAnimations(ctx, geom, state, animations, palette);
   drawHoverRing(ctx, geom, state, ui, palette);
@@ -58,6 +59,43 @@ export function renderFrame(ctx, state, animations, ui, dpr, cssW, cssH, dtMs = 
   updateAndDrawParticles(ctx, dtMs);
 
   ctx.restore();
+}
+
+/* ----- Fixed Immovable Obstacles ----- */
+function drawObstacles(ctx, geom, obstacles, palette) {
+  if (!obstacles || obstacles.length === 0) return;
+  const { left, top, cellPx } = geom;
+  const pad = cellPx * 0.12;
+  const size = cellPx - pad * 2;
+  const r = Math.max(3, cellPx * 0.18);
+
+  for (const obs of obstacles) {
+    const ox = left + obs.x * cellPx + pad;
+    const oy = top + obs.y * cellPx + pad;
+
+    ctx.save();
+    // Pillar block background
+    ctx.fillStyle = palette.bgSoft || palette.lineStrong;
+    ctx.strokeStyle = palette.lineStrong || palette.inkFaint;
+    ctx.lineWidth = Math.max(1.5, cellPx * 0.08);
+
+    ctx.beginPath();
+    ctx.roundRect(ox, oy, size, size, r);
+    ctx.fill();
+    ctx.stroke();
+
+    // Embossed cross mark indicating immovable barrier
+    ctx.strokeStyle = palette.lineStrong;
+    ctx.lineWidth = Math.max(1.2, cellPx * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(ox + size * 0.28, oy + size * 0.28);
+    ctx.lineTo(ox + size * 0.72, oy + size * 0.72);
+    ctx.moveTo(ox + size * 0.72, oy + size * 0.28);
+    ctx.lineTo(ox + size * 0.28, oy + size * 0.72);
+    ctx.stroke();
+
+    ctx.restore();
+  }
 }
 
 /* ----- Grid backdrop: subtle dots at every cell intersection. ----- */
@@ -91,11 +129,19 @@ function drawArrows(ctx, geom, state, animations, ui, palette) {
     if (a.kind === 'block') blockIds.add(a.blockerId);
     if (a.kind === 'wiggle') wiggleIds.add(a.arrowId);
   }
+
+  // Cache currently active keys for lock checks
+  const activeKeys = new Set();
+  for (const a of state.arrows) {
+    if (a.keyId) activeKeys.add(a.keyId);
+  }
+
   for (const arrow of state.arrows) {
     if (flyingIds.has(arrow.id)) continue; // drawn by the animation pass
     const blockT = getBlockFlashT(animations, arrow.id);
     const wiggle = getWiggleOffset(animations, arrow.id, geom.cellPx);
-    drawArrow(ctx, geom, arrow, palette, blockT, wiggle);
+    const isLocked = arrow.lockedByKey ? activeKeys.has(arrow.lockedByKey) : false;
+    drawArrow(ctx, geom, arrow, palette, blockT, wiggle, 1, null, isLocked);
   }
 }
 
@@ -123,14 +169,22 @@ function getWiggleOffset(animations, arrowId, cellPx) {
 }
 
 /* Internal: draw a single arrow with the given color modifiers. */
-export function drawArrow(ctx, geom, arrow, palette, blockT = -1, wiggle = null, alpha = 1, offset = null) {
+export function drawArrow(ctx, geom, arrow, palette, blockT = -1, wiggle = null, alpha = 1, offset = null, isLocked = false) {
   const { cellPx } = geom;
   const cells = arrow.cells;
   const dir = DIRS[arrow.dir];
 
+  // Resolve base color based on key/locked/block states
+  let baseColor = palette.ink;
+  if (arrow.keyId && COLOR_KEYS[arrow.keyId]) {
+    baseColor = COLOR_KEYS[arrow.keyId].color;
+  } else if (isLocked) {
+    baseColor = palette.inkFaint || '#94a3b8';
+  }
+
   const shaftColor = blockT >= 0
-    ? mixColor(palette.ink, palette.danger, 0.4 + 0.5 * (1 - Math.abs(0.5 - blockT) * 2))
-    : palette.ink;
+    ? mixColor(baseColor, palette.danger, 0.4 + 0.5 * (1 - Math.abs(0.5 - blockT) * 2))
+    : baseColor;
 
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -184,6 +238,57 @@ export function drawArrow(ctx, geom, arrow, palette, blockT = -1, wiggle = null,
 
   // Triangle head — apex out, base across the tip cell.
   drawTipTriangle(ctx, tipCenter.x + ox, tipCenter.y + oy, dir, cellPx, shaftColor);
+
+  // --- SPECIAL MECHANIC BADGES ---
+  // 1. Color-Key Badge Glyph
+  if (arrow.keyId && COLOR_KEYS[arrow.keyId]) {
+    const keyDef = COLOR_KEYS[arrow.keyId];
+    const badgeIdx = Math.floor(cells.length / 2);
+    const badgeCell = cells[badgeIdx];
+    const bPos = cellCenter(badgeCell.x, badgeCell.y, geom);
+
+    ctx.save();
+    ctx.font = `bold ${Math.max(10, Math.round(cellPx * 0.38))}px system-ui, sans-serif`;
+    ctx.fillStyle = shaftColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(keyDef.glyph, bPos.x + ox, bPos.y + oy);
+    ctx.restore();
+  }
+
+  // 2. Padlock Badge for Locked Arrows
+  if (isLocked) {
+    const badgeIdx = Math.floor(cells.length / 2);
+    const badgeCell = cells[badgeIdx];
+    const bPos = cellCenter(badgeCell.x, badgeCell.y, geom);
+
+    ctx.save();
+    ctx.font = `${Math.max(10, Math.round(cellPx * 0.38))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🔒', bPos.x + ox, bPos.y + oy);
+    ctx.restore();
+  }
+
+  // 3. Circular Joint Ring for Rotating Pivot Arrows
+  if (arrow.isPivot) {
+    const tailCell = cells[0];
+    const tPos = cellCenter(tailCell.x, tailCell.y, geom);
+
+    ctx.save();
+    ctx.strokeStyle = shaftColor;
+    ctx.lineWidth = Math.max(1.5, cellPx * 0.08);
+    ctx.beginPath();
+    ctx.arc(tPos.x + ox, tPos.y + oy, cellPx * 0.28, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.font = `bold ${Math.max(9, Math.round(cellPx * 0.26))}px system-ui, sans-serif`;
+    ctx.fillStyle = shaftColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⟳', tPos.x + ox, tPos.y + oy);
+    ctx.restore();
+  }
 
   ctx.restore();
 }
