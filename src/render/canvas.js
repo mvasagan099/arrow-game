@@ -7,19 +7,37 @@ import { DIRS } from '../config.js';
 import { getGeom, cellCenter } from './viewport.js';
 import { drawAnimations } from './animations.js';
 
-/* Reads CSS custom properties so palette stays in sync with the page. */
+/* Reads CSS custom properties so palette stays in sync with the page.
+   Cached by theme state to avoid repeated getComputedStyle recalculations on every frame. */
+let cachedPalette = null;
+let lastIsDark = null;
+
+export function invalidatePalette() {
+  cachedPalette = null;
+}
+
 function readPalette() {
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  if (cachedPalette && isDark === lastIsDark) return cachedPalette;
+  if (typeof document === 'undefined') {
+    return {
+      bg: '#fff', ink: '#111', soft: '#555', faint: '#aaa',
+      line: '#e6e6ea', hint: '#d49a1a', danger: '#d33b3b', good: '#1e8c4a'
+    };
+  }
   const cs = getComputedStyle(document.documentElement);
-  return {
-    bg:    cs.getPropertyValue('--bg').trim()        || '#fff',
-    ink:   cs.getPropertyValue('--ink').trim()       || '#111',
-    soft:  cs.getPropertyValue('--ink-soft').trim()  || '#555',
-    faint: cs.getPropertyValue('--ink-faint').trim() || '#aaa',
-    line:  cs.getPropertyValue('--line').trim()      || '#e6e6ea',
-    hint:  cs.getPropertyValue('--hint').trim()      || '#d49a1a',
-    danger:cs.getPropertyValue('--danger').trim()    || '#d33b3b',
-    good:  cs.getPropertyValue('--good').trim()      || '#1e8c4a'
+  lastIsDark = isDark;
+  cachedPalette = {
+    bg:    cs.getPropertyValue('--bg').trim()        || (isDark ? '#0f0f10' : '#fff'),
+    ink:   cs.getPropertyValue('--ink').trim()       || (isDark ? '#f4f4f6' : '#111'),
+    soft:  cs.getPropertyValue('--ink-soft').trim()  || (isDark ? '#c2c2c8' : '#555'),
+    faint: cs.getPropertyValue('--ink-faint').trim() || (isDark ? '#7a7a82' : '#aaa'),
+    line:  cs.getPropertyValue('--line').trim()      || (isDark ? '#26262a' : '#e6e6ea'),
+    hint:  cs.getPropertyValue('--hint').trim()      || (isDark ? '#f0c45a' : '#d49a1a'),
+    danger:cs.getPropertyValue('--danger').trim()    || (isDark ? '#ff5a5a' : '#d33b3b'),
+    good:  cs.getPropertyValue('--good').trim()      || (isDark ? '#4ad07a' : '#1e8c4a')
   };
+  return cachedPalette;
 }
 
 /* Public: render the whole frame. Called by the loop. */

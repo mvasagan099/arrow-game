@@ -24,8 +24,13 @@ export function open(id) {
 }
 
 export function close(id) {
-  if (!id) id = openStack.pop();
-  else openStack.splice(openStack.indexOf(id), 1);
+  if (!id) {
+    id = openStack.pop();
+  } else {
+    const idx = openStack.indexOf(id);
+    if (idx !== -1) openStack.splice(idx, 1);
+    else return;
+  }
   if (!id) return;
   const m = document.getElementById(id);
   if (!m) return;
