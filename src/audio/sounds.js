@@ -16,6 +16,7 @@ export function isMuted() { return muted; }
 
 function ensureCtx() {
   if (ctx) return ctx;
+  if (typeof window === 'undefined') return null;
   const Ctor = window.AudioContext || window.webkitAudioContext;
   if (!Ctor) return null;
   try {
@@ -74,6 +75,14 @@ export function sfxHint() {
 
 export function sfxTick() {
   blip({ freq: 1100, type: 'sine', dur: 0.025, decay: 0.04, gain: 0.18 });
+}
+
+export function sfxButton() {
+  blip({ freq: 920, type: 'sine', dur: 0.02, decay: 0.03, gain: 0.14 });
+}
+
+export function sfxFail() {
+  chord([369.99, 311.13, 261.63], { type: 'sawtooth', dur: 0.16, decay: 0.22, gain: 0.24, slide: -40 });
 }
 
 export function sfxAchievement() {

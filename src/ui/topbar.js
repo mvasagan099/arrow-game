@@ -4,12 +4,17 @@ import { HEARTS_MAX, tierForLevel } from '../config.js';
 
 let heartsEl, levelLabel, levelTier, progressFill;
 
-export function initTopbar() {
+export function initTopbar(handlers = {}) {
   heartsEl = document.getElementById('hearts');
   levelLabel = document.getElementById('level-label');
   levelTier = document.getElementById('level-tier');
   progressFill = document.getElementById('progress-fill');
   renderHearts(HEARTS_MAX);
+
+  const pauseBtn = document.getElementById('btn-pause');
+  if (pauseBtn && handlers.onPause) {
+    pauseBtn.addEventListener('click', handlers.onPause);
+  }
 }
 
 export function setLevelDisplay(state) {

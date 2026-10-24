@@ -17,7 +17,8 @@ const suites = [
   'smoke.mjs',
   'engine.test.mjs',
   'persistence.test.mjs',
-  'viewport.test.mjs'
+  'viewport.test.mjs',
+  'phase2.test.mjs'
 ];
 
 async function runSuite(file) {

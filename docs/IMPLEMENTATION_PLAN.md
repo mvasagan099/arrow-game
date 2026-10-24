@@ -21,15 +21,17 @@ The overall engineering roadmap is structured into eight distinct phases:
 
 ---
 
-### Phase 2: Modern UI, Visual Polish & Animations
-- **Status**: Pending
+### Phase 2: Modern UI, Visual Polish & Animations (CURRENT)
+- **Status**: Completed
 - **Objectives**:
   - **Modern Interface Overhaul**: Introduce a refined, distraction-free aesthetic with smooth typography, subtle elevation shadows, and theme transitions.
-  - **Particle Effects**: Implement high-performance Canvas 2D / WebGL particle bursts on arrow exit and level complete without garbage collection overhead (object pooling).
-  - **Haptic Feedback**: Integrate native vibration API (`navigator.vibrate` with future Capacitor Haptics fallback) for tactile feedback on extract, block, and win.
-  - **Interactive Tutorial**: Visual hands-on onboarding sequence for first-time players.
-  - **Sound Enhancements**: Expand Web Audio procedural synthesizer to include customizable pitch profiles, ambient tones, and level-complete harmonies.
-  - **Motion Accessibility**: Ensure full conformance with `prefers-reduced-motion` settings.
+  - **Home Screen Redesign**: Dedicated `#screen-home` with animated ambient ghost arrow canvas, original logo emblem, level progression display, Quick Nav, and hero CTA.
+  - **Four Rich Themes**: Complete design token systems for `classic`, `dark`, `neon`, and `pastel` with verified WCAG contrast (>10:1).
+  - **Zero-Allocation Particle System**: High-performance pooled particle effects (140-object pool) for directional arrow exit trails, collision blocker sparks, and celebratory win bursts.
+  - **Haptic Feedback**: Cross-platform tactile vibration abstraction (`navigator.vibrate` with future Capacitor Haptics bridge) for tap, extract, collision block, victory, and failure.
+  - **Mobile Layout & Viewport Optimization**: Complete responsive styling supporting cutouts/notches (`env(safe-area-inset-*)`), dynamic viewports (`dvh`), and verified fit across 360x800, 393x873, 412x915, and 768x1024.
+  - **Procedural Sound Additions**: Enhanced Web Audio synthesizer adding clean tactile button tap blips (`sfxButton`) and descending chord failure sounds (`sfxFail`).
+  - **Motion & Battery Efficiency**: Automatic loop pausing on `document.hidden` (`visibilitychange`), dirty-flag particle ticking, and `prefers-reduced-motion` compliance.
 
 ---
 

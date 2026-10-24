@@ -127,8 +127,16 @@ test('Persistence: Migration and recovery from legacy or corrupt data', () => {
   assert.equal(migrated.currentLevel, 10);
   assert.equal(migrated.stats.totalCompleted, 5);
   assert.equal(migrated.stats.maxLevel, 1); // filled default
-  assert.equal(migrated.settings.theme, 'light'); // filled default
+  assert.equal(migrated.settings.theme, 'classic'); // filled default (Phase 2 default light theme)
   assert.equal(migrated.completedBits, '');
+
+  // 1b. Legacy theme 'light' migration to 'classic'
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    settings: { theme: 'light', sound: true }
+  }));
+  const legacyThemeMigrated = load();
+  assert.equal(legacyThemeMigrated.settings.theme, 'classic');
+  assert.equal(legacyThemeMigrated.settings.haptics, true); // defaulted
 
   // 2. Corrupt non-JSON data
   localStorage.setItem(STORAGE_KEY, 'invalid-json{{{');

@@ -1,10 +1,29 @@
 /* Bottom action bar: Undo, Hint, Recenter, Restart. Pure event wiring. */
 
+import { sfxButton } from '../audio/sounds.js';
+import { hapticTap } from '../audio/haptics.js';
+
 export function initActions(handlers) {
-  document.getElementById('btn-undo').addEventListener('click', handlers.onUndo);
-  document.getElementById('btn-hint').addEventListener('click', handlers.onHint);
-  document.getElementById('btn-resetview').addEventListener('click', handlers.onRecenter);
-  document.getElementById('btn-restart').addEventListener('click', handlers.onRestart);
+  document.getElementById('btn-undo').addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    handlers.onUndo?.();
+  });
+  document.getElementById('btn-hint').addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    handlers.onHint?.();
+  });
+  document.getElementById('btn-resetview').addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    handlers.onRecenter?.();
+  });
+  document.getElementById('btn-restart').addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    handlers.onRestart?.();
+  });
 }
 
 export function setUndoEnabled(enabled) {

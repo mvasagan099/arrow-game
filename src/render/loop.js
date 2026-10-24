@@ -11,6 +11,7 @@
 
 import { renderFrame } from './canvas.js';
 import { constrainView } from './viewport.js';
+import { getActiveParticleCount } from './particles.js';
 
 const ctxState = {
   canvas: null,
@@ -22,6 +23,8 @@ const ctxState = {
   raf: 0,
   onResizeCallbacks: []
 };
+
+let _savedGetters = null;
 
 export function setupCanvas(canvas) {
   ctxState.canvas = canvas;
@@ -59,31 +62,54 @@ export function getCanvasCtx() {
 }
 
 export function startLoop(getState, getAnimations, getUi) {
-  function tick() {
+  if (ctxState.raf) return;
+  _savedGetters = { getState, getAnimations, getUi };
+  let lastTime = performance.now();
+
+  function tick(currentTime) {
     try {
+      const now = currentTime || performance.now();
+      const dtMs = Math.min(100, Math.max(1, now - lastTime));
+      lastTime = now;
+
       const state = getState();
       const animations = getAnimations();
       const ui = getUi();
+      const hasParticles = getActiveParticleCount() > 0;
       const animating = animations.length > 0
-        || (ui.hintExpiresAt && performance.now() < ui.hintExpiresAt);
+        || (ui.hintExpiresAt && now < ui.hintExpiresAt)
+        || hasParticles;
 
       if (state) constrainView(state, ctxState.cssW, ctxState.cssH);
 
       if (ctxState.dirty || animating) {
-        renderFrame(ctxState.ctx, state, animations, ui, ctxState.dpr, ctxState.cssW, ctxState.cssH);
-        ctxState.dirty = animating; // keep ticking if animations still alive
+        renderFrame(ctxState.ctx, state, animations, ui, ctxState.dpr, ctxState.cssW, ctxState.cssH, dtMs);
+        ctxState.dirty = animating || (getActiveParticleCount() > 0);
       }
     } catch (err) {
-      // Keep the loop alive even if a frame throws, so a hiccup doesn't
-      // permanently freeze the canvas. Log for devtools inspection.
       console.error('[render]', err);
     }
     ctxState.raf = requestAnimationFrame(tick);
   }
-  tick();
+  ctxState.raf = requestAnimationFrame(tick);
 }
 
 export function stopLoop() {
-  if (ctxState.raf) cancelAnimationFrame(ctxState.raf);
-  ctxState.raf = 0;
+  if (ctxState.raf) {
+    cancelAnimationFrame(ctxState.raf);
+    ctxState.raf = 0;
+  }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopLoop();
+    } else {
+      markDirty();
+      if (_savedGetters) {
+        startLoop(_savedGetters.getState, _savedGetters.getAnimations, _savedGetters.getUi);
+      }
+    }
+  });
 }

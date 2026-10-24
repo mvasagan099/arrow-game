@@ -20,8 +20,9 @@ function emptyData() {
     },
     achievements: {},          // id -> unlockedAt (ms epoch)
     settings: {
-      theme: prefersDark() ? 'dark' : 'light',
-      sound: false,
+      theme: prefersDark() ? 'dark' : 'classic',
+      sound: true,
+      haptics: true,
       reduceMotion: prefersReducedMotion()
     },
     daily: {
@@ -68,6 +69,13 @@ function migrate(data) {
   // shallow-merge with defaults so missing keys get populated
   data.stats        = { ...fresh.stats, ...(data.stats || {}) };
   data.settings     = { ...fresh.settings, ...(data.settings || {}) };
+  if (data.settings.theme === 'light') data.settings.theme = 'classic';
+  if (!['classic', 'dark', 'neon', 'pastel'].includes(data.settings.theme)) {
+    data.settings.theme = fresh.settings.theme;
+  }
+  if (typeof data.settings.haptics !== 'boolean') {
+    data.settings.haptics = true;
+  }
   data.daily        = { ...fresh.daily, ...(data.daily || {}) };
   data.achievements = data.achievements || {};
   if (typeof data.currentLevel !== 'number' || data.currentLevel < 1) data.currentLevel = 1;

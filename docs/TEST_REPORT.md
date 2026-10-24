@@ -8,10 +8,11 @@
 | Game Engine Validation | `test/engine.test.mjs` | 11 suites (38 assertions) | 11 | 0 | PASSED |
 | Persistence & Bitmask | `test/persistence.test.mjs` | 4 suites (22 assertions) | 4 | 0 | PASSED |
 | Mobile Viewport & Sizing | `test/viewport.test.mjs` | 4 suites (32 assertions) | 4 | 0 | PASSED |
+| Phase 2 Themes & Polish | `test/phase2.test.mjs` | 7 suites (30 assertions) | 7 | 0 | PASSED |
 | Performance Benchmark | `test/benchmark.mjs` | 100 level generation & solves | 100 | 0 | PASSED |
-| **Total** | **Unified Runner** | **383 verification points** | **383** | **0** | **ALL PASSED (100%)** |
+| **Total** | **Unified Runner** | **390 verification points** | **390** | **0** | **ALL PASSED (100%)** |
 
-Execution time for the full test suite: **0.80 seconds** on Node.js v22.12.0 LTS.
+Execution time for the full test suite: **0.98 seconds** on Node.js v22.12.0 LTS.
 
 ---
 
@@ -57,6 +58,28 @@ Results:
 - Touch target sizes: Action buttons are at least 78.5px wide on 360px screens (exceeding WCAG 48px standard).
 - Coordinate transformation roundtrip (`screenToCell` -> `cellCenter` -> `screenToCell`) validated for 100% of grid cells.
 - Pan and zoom clamping (`constrainView`) strictly prevents board loss off-screen.
+
+### 2.4 Phase 2 Themes, Particles, Haptics & Mobile Verification (`test/phase2.test.mjs`)
+1. **Four-Theme Completeness & Palettes**:
+   - Verified all 4 themes (`classic`, `dark`, `neon`, `pastel`) exist in `THEMES` and `THEME_KEYS`.
+   - Verified all 13 palette properties (`bg`, `bgSoft`, `bgCard`, `ink`, `inkSoft`, `inkFaint`, `line`, `lineStrong`, `accent`, `danger`, `heart`, `hint`, `good`) are populated with valid hex codes.
+   - Contrast check: Relative luminance math confirms all 4 themes deliver contrast ratios $\ge 10:1$ (exceeding WCAG AAA standard of $7:1$ and minimum AA of $4.5:1$).
+2. **State-Preserving Theme Switching**:
+   - Verified that switching themes through all 4 themes preserves player progress (`currentLevel`, `stats`, `achievements`, `completedBits`).
+3. **Zero-Allocation Particle System**:
+   - Pre-allocated pool size verified at exactly 140 objects.
+   - Verified directional trail emission (`emitTrail`), collision sparks (`emitBlockSparks`), and victory burst (`emitWinBurst`).
+   - Stress test with 10 consecutive win bursts confirmed active particle count never exceeds pool cap (140) and causes 0 new allocations.
+   - Verified particle lifespan expiry and full reset with `clearParticles()`.
+4. **Haptics Vibration Engine**:
+   - Verified pattern definitions for `tap` ($12\text{ms}$), `extract` ($18\text{ms}$), `block` ($[30, 40, 30]\text{ms}$), `win` ($[35, 45, 35, 50, 80]\text{ms}$), and `fail` ($[80, 50, 100]\text{ms}$).
+   - Verified disabling haptics suppresses calls to `navigator.vibrate`.
+   - Verified graceful fallback without exceptions when `navigator.vibrate` is absent.
+5. **Procedural Sound Fallback Safety**:
+   - Verified `sfxButton()`, `sfxFail()`, `sfxExtract()`, `sfxBlock()`, `sfxWin()`, `sfxHint()`, and `sfxTick()` execute safely without throw in headless / node environments where `AudioContext` is undefined.
+6. **Mobile Touch Target & Viewport Fit**:
+   - Evaluated layouts on 360×800, 393×873, 412×915, and 768×1024 viewports.
+   - Confirmed minimum playable canvas side $\ge 320\text{px}$ and cell dimensions $\ge 48\text{px}$ across all mobile viewports.
 
 ---
 

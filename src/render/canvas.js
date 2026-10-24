@@ -3,45 +3,44 @@
    glow, the hover ring, and delegates animated effects to the animation
    layer. Stateless beyond a few cached colors. */
 
-import { DIRS } from '../config.js';
+import { DIRS, THEMES, DEFAULT_THEME } from '../config.js';
 import { getGeom, cellCenter } from './viewport.js';
 import { drawAnimations } from './animations.js';
+import { updateAndDrawParticles } from './particles.js';
 
-/* Reads CSS custom properties so palette stays in sync with the page.
-   Cached by theme state to avoid repeated getComputedStyle recalculations on every frame. */
+/* Reads theme configuration and custom properties.
+   Cached for high performance; invalidated on theme change. */
+let currentThemeKey = DEFAULT_THEME;
 let cachedPalette = null;
-let lastIsDark = null;
 
-export function invalidatePalette() {
+export function invalidatePalette(newThemeKey = null) {
+  if (newThemeKey && THEMES[newThemeKey]) {
+    currentThemeKey = newThemeKey;
+  }
   cachedPalette = null;
 }
 
-function readPalette() {
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-  if (cachedPalette && isDark === lastIsDark) return cachedPalette;
-  if (typeof document === 'undefined') {
-    return {
-      bg: '#fff', ink: '#111', soft: '#555', faint: '#aaa',
-      line: '#e6e6ea', hint: '#d49a1a', danger: '#d33b3b', good: '#1e8c4a'
-    };
+export function getCurrentThemeKey() {
+  return currentThemeKey;
+}
+
+export function readPalette() {
+  if (cachedPalette) return cachedPalette;
+  if (typeof document !== 'undefined') {
+    const attr = document.documentElement.dataset.theme;
+    if (attr && THEMES[attr]) {
+      currentThemeKey = attr;
+    } else if (document.documentElement.classList.contains('dark')) {
+      currentThemeKey = 'dark';
+    }
   }
-  const cs = getComputedStyle(document.documentElement);
-  lastIsDark = isDark;
-  cachedPalette = {
-    bg:    cs.getPropertyValue('--bg').trim()        || (isDark ? '#0f0f10' : '#fff'),
-    ink:   cs.getPropertyValue('--ink').trim()       || (isDark ? '#f4f4f6' : '#111'),
-    soft:  cs.getPropertyValue('--ink-soft').trim()  || (isDark ? '#c2c2c8' : '#555'),
-    faint: cs.getPropertyValue('--ink-faint').trim() || (isDark ? '#7a7a82' : '#aaa'),
-    line:  cs.getPropertyValue('--line').trim()      || (isDark ? '#26262a' : '#e6e6ea'),
-    hint:  cs.getPropertyValue('--hint').trim()      || (isDark ? '#f0c45a' : '#d49a1a'),
-    danger:cs.getPropertyValue('--danger').trim()    || (isDark ? '#ff5a5a' : '#d33b3b'),
-    good:  cs.getPropertyValue('--good').trim()      || (isDark ? '#4ad07a' : '#1e8c4a')
-  };
+  const theme = THEMES[currentThemeKey] || THEMES.classic;
+  cachedPalette = { ...theme.palette };
   return cachedPalette;
 }
 
 /* Public: render the whole frame. Called by the loop. */
-export function renderFrame(ctx, state, animations, ui, dpr, cssW, cssH) {
+export function renderFrame(ctx, state, animations, ui, dpr, cssW, cssH, dtMs = 16.6) {
   const palette = readPalette();
   ctx.save();
   ctx.scale(dpr, dpr);
@@ -54,6 +53,9 @@ export function renderFrame(ctx, state, animations, ui, dpr, cssW, cssH) {
   drawAnimations(ctx, geom, state, animations, palette);
   drawHoverRing(ctx, geom, state, ui, palette);
   drawHintGlow(ctx, geom, state, ui, palette);
+
+  // Particles layer on top
+  updateAndDrawParticles(ctx, dtMs);
 
   ctx.restore();
 }
@@ -210,6 +212,10 @@ export function drawTipTriangle(ctx, cx, cy, dir, cellPx, color) {
   ctx.closePath();
   ctx.fillStyle = color;
   ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, cellPx * 0.04);
+  ctx.lineJoin = 'round';
+  ctx.stroke();
 }
 
 /* ----- Hover ring: subtle highlight under the arrow the pointer is on. ----- */

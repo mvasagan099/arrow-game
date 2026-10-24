@@ -79,6 +79,101 @@ export const TOAST_DURATION_MS = 1800;
 export const VIEW_MIN = 0.45;
 export const VIEW_MAX = 4.5;
 
+/* Centralized Theme Definitions (4 distinct themes) */
+export const THEMES = {
+  classic: {
+    id: 'classic',
+    name: 'Classic',
+    desc: 'Crisp white with dark ink arrows',
+    isDark: false,
+    preview: { bg: '#ffffff', ink: '#18181b', accent: '#2563eb' },
+    palette: {
+      bg: '#ffffff',
+      bgSoft: '#f4f4f5',
+      bgCard: '#ffffff',
+      ink: '#18181b',
+      inkSoft: '#52525b',
+      inkFaint: '#a1a1aa',
+      line: '#e4e4e7',
+      lineStrong: '#d4d4d8',
+      accent: '#2563eb',
+      danger: '#ef4444',
+      heart: '#f43f5e',
+      hint: '#eab308',
+      good: '#10b981'
+    }
+  },
+  dark: {
+    id: 'dark',
+    name: 'Dark Slate',
+    desc: 'OLED charcoal with luminescent arrows',
+    isDark: true,
+    preview: { bg: '#09090b', ink: '#f4f4f5', accent: '#38bdf8' },
+    palette: {
+      bg: '#09090b',
+      bgSoft: '#18181b',
+      bgCard: '#141416',
+      ink: '#f4f4f5',
+      inkSoft: '#a1a1aa',
+      inkFaint: '#71717a',
+      line: '#27272a',
+      lineStrong: '#3f3f46',
+      accent: '#38bdf8',
+      danger: '#f87171',
+      heart: '#fb7185',
+      hint: '#facc15',
+      good: '#34d399'
+    }
+  },
+  neon: {
+    id: 'neon',
+    name: 'Neon Cyber',
+    desc: 'Midnight blue with electric cyan & yellow',
+    isDark: true,
+    preview: { bg: '#0b0d19', ink: '#38bdf8', accent: '#fde047' },
+    palette: {
+      bg: '#0b0d19',
+      bgSoft: '#13172c',
+      bgCard: '#171b35',
+      ink: '#38bdf8',
+      inkSoft: '#818cf8',
+      inkFaint: '#6366f1',
+      line: '#1e2447',
+      lineStrong: '#2e3668',
+      accent: '#38bdf8',
+      danger: '#f43f5e',
+      heart: '#fb7185',
+      hint: '#fde047',
+      good: '#2dd4bf'
+    }
+  },
+  pastel: {
+    id: 'pastel',
+    name: 'Soft Pastel',
+    desc: 'Soothing lavender with rich plum arrows',
+    isDark: false,
+    preview: { bg: '#f5f3ff', ink: '#312e81', accent: '#6366f1' },
+    palette: {
+      bg: '#f5f3ff',
+      bgSoft: '#ede9fe',
+      bgCard: '#ffffff',
+      ink: '#312e81',
+      inkSoft: '#6366f1',
+      inkFaint: '#a5b4fc',
+      line: '#ddd6fe',
+      lineStrong: '#c4b5fd',
+      accent: '#6366f1',
+      danger: '#e11d48',
+      heart: '#f43f5e',
+      hint: '#ea580c',
+      good: '#059669'
+    }
+  }
+};
+
+export const THEME_KEYS = ['classic', 'dark', 'neon', 'pastel'];
+export const DEFAULT_THEME = 'classic';
+
 /* Storage */
 export const STORAGE_KEY = 'arrows-escape:v1';
 export const STORAGE_VERSION = 1;

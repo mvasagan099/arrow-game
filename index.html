@@ -3,125 +3,314 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Arrows – Puzzle Escape</title>
-  <meta name="description" content="A minimalist arrow extraction logic puzzle. Extract every arrow from the grid without causing a collision." />
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)" />
+  <title>Arrow Escape — Minimalist Offline Puzzle</title>
+  <meta name="description" content="A modern arrow extraction logic puzzle game. Extract every arrow from the grid without causing a collision." />
+  <meta name="theme-color" content="#ffffff" id="meta-theme-color" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M14 32h28M30 18l14 14-14 14' fill='none' stroke='%23111' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M14 32h28M30 18l14 14-14 14' fill='none' stroke='%232563eb' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
 </head>
 <body>
   <div class="app" id="app">
 
-    <header class="topbar">
-      <button id="btn-menu" class="icon-btn" aria-label="Open menu">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
-        </svg>
-      </button>
+    <!-- SCREEN 1: REDESIGNED HOME SCREEN -->
+    <div id="screen-home" class="screen screen-home active">
+      <canvas id="home-bg-canvas" class="home-bg-canvas" aria-hidden="true"></canvas>
 
-      <div class="level-title">
-        <div id="level-label">Level 1</div>
-        <div id="level-tier" class="tier easy">Easy</div>
+      <div class="home-content">
+        <!-- Logo Header -->
+        <header class="home-header">
+          <div class="logo-emblem" aria-hidden="true">
+            <svg viewBox="0 0 72 72" width="68" height="68">
+              <rect x="6" y="6" width="60" height="60" rx="16" class="emblem-bg" />
+              <!-- Top-right arrow -->
+              <path d="M22 46L46 22M32 22h14v14" class="emblem-arrow primary" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <!-- Bottom-left accent arrow -->
+              <path d="M44 50H26V32" class="emblem-arrow accent" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+          </div>
+          <h1 class="logo-title">ARROW ESCAPE</h1>
+          <p class="logo-subtitle">Minimalist Logic Puzzle</p>
+        </header>
+
+        <!-- Main Hero CTA Card -->
+        <section class="home-hero-card">
+          <div class="hero-badge-wrap">
+            <span id="home-level-badge" class="tier easy">Level 1 • Easy</span>
+          </div>
+
+          <button id="btn-home-play" class="btn-hero-play" aria-label="Start playing">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86z"/>
+            </svg>
+            <span class="play-text">Play Now</span>
+          </button>
+
+          <!-- Quick Stats Pill -->
+          <div class="home-stats-row">
+            <div class="stat-pill">
+              <strong id="home-stat-solved">0</strong>
+              <span>Solved</span>
+            </div>
+            <div class="stat-pill">
+              <strong id="home-stat-streak">0</strong>
+              <span>Streak</span>
+            </div>
+            <div class="stat-pill">
+              <strong id="home-stat-perfect">0</strong>
+              <span>Flawless</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Navigation Cards Grid -->
+        <nav class="home-nav-grid" aria-label="Game navigation">
+          <button id="btn-home-levels" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              </svg>
+            </div>
+            <span>Levels</span>
+          </button>
+
+          <button id="btn-home-daily" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+            </div>
+            <span>Daily</span>
+          </button>
+
+          <button id="btn-home-achievements" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="6"/>
+                <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+              </svg>
+            </div>
+            <span>Badges</span>
+          </button>
+
+          <button id="btn-home-settings" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <button id="btn-home-howto" class="home-howto-link">How to Play</button>
       </div>
-
-      <div class="hearts" id="hearts" aria-label="Hearts remaining"></div>
-    </header>
-
-    <div class="progress" aria-hidden="true">
-      <div class="progress-fill" id="progress-fill"></div>
     </div>
 
-    <main class="board-wrapper" id="board-wrapper">
-      <canvas id="game-canvas" aria-label="Puzzle board"></canvas>
+    <!-- SCREEN 2: MODERNIZED GAMEPLAY SCREEN -->
+    <div id="screen-game" class="screen screen-game hidden">
+      <header class="topbar">
+        <button id="btn-pause" class="icon-btn" aria-label="Pause game" title="Pause game">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="10" y1="5" x2="10" y2="19" />
+            <line x1="14" y1="5" x2="14" y2="19" />
+          </svg>
+        </button>
 
-      <div class="overlay" id="overlay">
-        <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+        <div class="level-title">
+          <div id="level-label">Level 1</div>
+          <div id="level-tier" class="tier easy">Easy</div>
+        </div>
 
-        <div id="level-complete" class="level-complete hidden" aria-hidden="true">
-          <div class="lc-check">
+        <div class="hearts" id="hearts" aria-label="Hearts remaining"></div>
+      </header>
+
+      <div class="progress" aria-hidden="true">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <main class="board-wrapper" id="board-wrapper">
+        <canvas id="game-canvas" aria-label="Puzzle board"></canvas>
+        <div class="overlay" id="overlay">
+          <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+        </div>
+      </main>
+
+      <nav class="actions" aria-label="Game actions">
+        <button id="btn-undo" class="action" aria-label="Undo move (U)" title="Undo (U)">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M9 14l-4-4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            <path d="M5 10h9a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          </svg>
+          <span>Undo</span>
+        </button>
+
+        <button id="btn-hint" class="action action-hint" aria-label="Get Hint (H)" title="Hint (H)">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path d="M9 21h6M10 18h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.5-1 2.5v.5H9v-.5c0-1-.3-1.8-1-2.5A6 6 0 0 1 12 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          </svg>
+          <span>Hint</span>
+        </button>
+
+        <button id="btn-resetview" class="action" aria-label="Recenter board view (Space)" title="Recenter view (Space)">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+          </svg>
+          <span>Center</span>
+        </button>
+
+        <button id="btn-restart" class="action" aria-label="Restart level (R)" title="Restart level (R)">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M4 12a8 8 0 1 0 2.5-5.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+            <path d="M4 4v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          </svg>
+          <span>Restart</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- MODAL: VICTORY SCREEN (LEVEL COMPLETE) -->
+    <div id="modal-victory" class="modal" role="dialog" aria-labelledby="vc-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content victory-content">
+        <div class="victory-header">
+          <div class="victory-icon-wrap">
             <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
               <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" />
               <path d="M20 33l9 9 16-19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </div>
-          <div class="lc-title">Solved</div>
-          <div class="lc-sub">Level <span id="lc-level">1</span> complete</div>
-          <button id="btn-lc-next" class="btn-primary lc-next">Next</button>
-        </div>
-      </div>
-    </main>
-
-    <nav class="actions" aria-label="Game actions">
-      <button id="btn-undo" class="action" aria-label="Undo (U)" title="Undo (U)">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path d="M9 14l-4-4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-          <path d="M5 10h9a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        </svg>
-        <span>Undo</span>
-      </button>
-
-      <button id="btn-hint" class="action action-hint" aria-label="Hint (H)" title="Hint (H)">
-        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-          <path d="M9 21h6M10 18h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.5-1 2.5v.5H9v-.5c0-1-.3-1.8-1-2.5A6 6 0 0 1 12 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        </svg>
-        <span>Hint</span>
-      </button>
-
-      <button id="btn-resetview" class="action" aria-label="Recenter view (Space)" title="Recenter view (Space)">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
-        </svg>
-        <span>Center</span>
-      </button>
-
-      <button id="btn-restart" class="action" aria-label="Restart level (R)" title="Restart level (R)">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path d="M4 12a8 8 0 1 0 2.5-5.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
-          <path d="M4 4v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        </svg>
-        <span>Restart</span>
-      </button>
-    </nav>
-
-    <div id="drawer" class="drawer" role="dialog" aria-labelledby="drawer-title" aria-modal="true" aria-hidden="true">
-      <div class="drawer-scrim" data-close></div>
-      <div class="drawer-panel">
-        <button class="drawer-close icon-btn" aria-label="Close menu" data-close>&times;</button>
-        <h2 id="drawer-title">Arrows</h2>
-        <p class="drawer-sub">Puzzle Escape</p>
-
-        <div class="drawer-stats">
-          <div><strong id="stat-completed">0</strong><span>Solved</span></div>
-          <div><strong id="stat-streak">0</strong><span>Streak</span></div>
-          <div><strong id="stat-perfect">0</strong><span>Perfect</span></div>
+          <h2 id="vc-title" class="victory-title">Level Solved!</h2>
+          <p id="vc-level" class="victory-subtitle">Level 1</p>
         </div>
 
-        <div class="drawer-actions">
-          <button id="btn-howto" class="drawer-btn">How to Play</button>
-          <button id="btn-levels" class="drawer-btn">Levels</button>
-          <button id="btn-daily" class="drawer-btn">Daily Challenge</button>
-          <button id="btn-achievements" class="drawer-btn">Achievements</button>
+        <!-- Rating Stars -->
+        <div id="vc-stars" class="victory-stars" aria-label="Performance stars">
+          <span class="star-icon active">★</span>
+          <span class="star-icon active">★</span>
+          <span class="star-icon active">★</span>
         </div>
 
-        <div class="drawer-section">
-          <h3>Settings</h3>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-theme" />
-            <span>Dark theme</span>
-          </label>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-sound" />
-            <span>Sound effects</span>
-          </label>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-motion" />
-            <span>Reduce motion</span>
-          </label>
+        <!-- Badges -->
+        <div id="vc-badges" class="victory-badges"></div>
+
+        <!-- Stats Grid -->
+        <div class="victory-stats-grid">
+          <div class="vstat-item">
+            <span class="vstat-val" id="vc-time">0:30</span>
+            <span class="vstat-lbl">Time</span>
+          </div>
+          <div class="vstat-item">
+            <span class="vstat-val" id="vc-moves">24</span>
+            <span class="vstat-lbl">Moves</span>
+          </div>
+          <div class="vstat-item">
+            <span class="vstat-val" id="vc-hints">0</span>
+            <span class="vstat-lbl">Hints</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="victory-actions">
+          <button id="btn-vc-next" class="btn-primary btn-large">Next Level</button>
+          <div class="victory-sub-actions">
+            <button id="btn-vc-replay" class="btn-secondary">Replay</button>
+            <button id="btn-vc-home" class="btn-secondary">Home</button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- MODAL: LEVEL FAILED SCREEN -->
+    <div id="modal-fail" class="modal" role="dialog" aria-labelledby="fail-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content fail-content">
+        <div class="fail-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="54" height="54">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" />
+            <path d="M22 22l20 20M42 22L22 42" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h2 id="fail-title">Out of Hearts</h2>
+        <p class="fail-desc" id="fail-reason">All hearts lost! Blocked by other arrows.</p>
+        <p class="fail-tip">Tip: Look for arrows pointing directly toward the edges with clear exit paths.</p>
+
+        <div class="fail-actions">
+          <button id="btn-fail-retry" class="btn-primary btn-large">Try Again</button>
+          <button id="btn-fail-home" class="btn-secondary">Return Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: IN-GAME PAUSE DIALOG -->
+    <div id="modal-pause" class="modal" role="dialog" aria-labelledby="pause-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content">
+        <button class="modal-close icon-btn" aria-label="Resume" data-close>&times;</button>
+        <h2 id="pause-title">Game Paused</h2>
+        <p class="modal-sub" id="pause-level">Level 1</p>
+
+        <div class="pause-stats">
+          <div><strong id="pause-moves">0</strong><span>Moves Made</span></div>
+          <div><strong id="pause-hearts">3</strong><span>Hearts Left</span></div>
+        </div>
+
+        <div class="pause-menu-actions">
+          <button id="btn-pause-resume" class="btn-primary btn-large">Resume</button>
+          <button id="btn-pause-restart" class="btn-secondary">Restart Level</button>
+          <button id="btn-pause-settings" class="btn-secondary">Settings</button>
+          <button id="btn-pause-home" class="btn-secondary">Exit to Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: MODERN SETTINGS DIALOG -->
+    <div id="modal-settings" class="modal" role="dialog" aria-labelledby="settings-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <h2 id="settings-title">Settings</h2>
+
+        <!-- Theme Selection Grid -->
+        <div class="settings-section">
+          <h3>Themes</h3>
+          <div id="theme-picker" class="theme-picker-grid"></div>
+        </div>
+
+        <!-- Toggles Section -->
+        <div class="settings-section">
+          <h3>Preferences</h3>
+          <label class="toggle-card">
+            <span>Sound Effects</span>
+            <input type="checkbox" id="toggle-settings-sound" />
+          </label>
+          <label class="toggle-card">
+            <span>Haptic Feedback</span>
+            <input type="checkbox" id="toggle-settings-haptics" />
+          </label>
+          <label class="toggle-card">
+            <span>Reduce Motion</span>
+            <input type="checkbox" id="toggle-settings-motion" />
+          </label>
+        </div>
+
+        <div class="settings-section">
+          <button id="btn-settings-howto" class="btn-secondary full-width">How to Play Tutorial</button>
+        </div>
+
+        <!-- Game Info & Open Source Notice -->
+        <div class="settings-footer-info">
+          <p class="app-version">Arrow Escape v1.1.0 • Phase 2</p>
+          <p class="app-credits">MIT Licensed • 100% Offline</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: HOW TO PLAY -->
     <div id="modal-howto" class="modal" role="dialog" aria-labelledby="howto-title" aria-modal="true" aria-hidden="true">
       <div class="modal-scrim" data-close></div>
       <div class="modal-content">
@@ -130,20 +319,21 @@
         <div class="modal-body">
           <p>Tap an arrow to <strong>extract it</strong> in the direction it points.</p>
           <ul>
-            <li>An arrow can only escape if every cell in front of its tip is clear, all the way to the edge.</li>
-            <li>A blocked tap costs you a <span class="heart-inline">&hearts;</span> &mdash; the blocking arrow flashes red.</li>
+            <li>An arrow can only escape if every cell in front of its tip is clear to the grid edge.</li>
+            <li>A blocked tap costs you a <span class="heart-inline">&hearts;</span> &mdash; the blocking arrow briefly flashes.</li>
             <li>Lose all 3 hearts and the level restarts.</li>
-            <li>Clear the entire grid to advance.</li>
-            <li>Stuck? Press <strong>Hint</strong>.</li>
+            <li>Clear the entire grid to advance!</li>
+            <li>Pinch to zoom, drag to pan, and press <strong>Hint</strong> when stuck.</li>
           </ul>
-          <p class="note">No timer. No pressure. Just logic.</p>
+          <p class="note">No timer. No pressure. Pure logic.</p>
         </div>
         <div class="modal-footer">
-          <button class="btn-primary" data-close>Got it</button>
+          <button class="btn-primary" data-close>Got It</button>
         </div>
       </div>
     </div>
 
+    <!-- MODAL: LEVEL SELECT -->
     <div id="modal-levels" class="modal" role="dialog" aria-labelledby="levels-title" aria-modal="true" aria-hidden="true">
       <div class="modal-scrim" data-close></div>
       <div class="modal-content modal-wide">
@@ -173,6 +363,7 @@
       </div>
     </div>
 
+    <!-- MODAL: ACHIEVEMENTS -->
     <div id="modal-achievements" class="modal" role="dialog" aria-labelledby="achievements-title" aria-modal="true" aria-hidden="true">
       <div class="modal-scrim" data-close></div>
       <div class="modal-content modal-wide">
@@ -182,19 +373,6 @@
       </div>
     </div>
 
-    <div id="modal-fail" class="modal" role="dialog" aria-labelledby="fail-title" aria-modal="true" aria-hidden="true">
-      <div class="modal-scrim" data-close></div>
-      <div class="modal-content">
-        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
-        <h2 id="fail-title">Out of Hearts</h2>
-        <div class="modal-body">
-          <p>Don't worry &mdash; the arrows are still waiting for you.</p>
-        </div>
-        <div class="modal-footer">
-          <button id="btn-fail-retry" class="btn-primary">Try Again</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="src/main.js"></script>
