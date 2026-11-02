@@ -39,7 +39,12 @@ function emptyData() {
       history: []
     },
     tutorials: {},
-    economy: createDefaultEconomy()
+    economy: createDefaultEconomy(),
+    ads: {
+      lastInterstitialTime: 0,
+      levelsCompletedSinceLastAd: 0,
+      totalInterstitialsShown: 0
+    }
   };
 }
 
@@ -52,6 +57,10 @@ function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
+}
+
+export function createDefaultData() {
+  return emptyData();
 }
 
 export function load() {
@@ -89,6 +98,12 @@ function migrate(data) {
   data.tutorials    = data.tutorials || {};
   data.achievements = data.achievements || {};
   data.economy      = ensureEconomy(data);
+  data.ads          = {
+    lastInterstitialTime: 0,
+    levelsCompletedSinceLastAd: 0,
+    totalInterstitialsShown: 0,
+    ...(data.ads || {})
+  };
   if (typeof data.currentLevel !== 'number' || data.currentLevel < 1) data.currentLevel = 1;
   if (typeof data.completedBits !== 'string') data.completedBits = '';
   data.v = STORAGE_VERSION;

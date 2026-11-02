@@ -40,15 +40,30 @@
 
 ---
 
-## 4. Monetization & AdMob Requirements (Phase 5 Prep)
+## 4. Monetization & AdMob Production Switchover (Phase 5)
 
-- [ ] **AdMob Account & App IDs**: Configure production Android App ID in `AndroidManifest.xml`.
-- [ ] **Ad Unit IDs**:
-  - Banner Ad Unit ID
-  - Interstitial Ad Unit ID
-  - Rewarded Ad Unit ID
-- [ ] **Consent Management Platform (CMP)**: Integrate Google UMP SDK for European Economic Area (EEA) and UK user consent.
-- [ ] **Offline Graceful Degradation**: Ad calls fail silently when offline without crashing or halting gameplay.
+- [x] **AdMob Architecture & Capacitor Integration**:
+  - `@capacitor-community/admob@8.3.0` installed and linked in native Android project.
+  - Provider abstraction layer (`NativeAdMobProvider`, `BrowserMockProvider`, `OfflineProvider`) verified.
+  - 30 automated tests passing in `test/ads.test.mjs`.
+- [x] **Official Google Test IDs (Current Development State)**:
+  - App ID: `ca-app-pub-3940256099942544~3347511713` in `AndroidManifest.xml` and `src/ads/ad-config.js`.
+  - Banner Unit ID: `ca-app-pub-3940256099942544/6300978111`.
+  - Interstitial Unit ID: `ca-app-pub-3940256099942544/1033173712`.
+  - Rewarded Unit ID: `ca-app-pub-3940256099942544/5224354917`.
+  - Test mode verified (`isTesting: true`).
+- [x] **Consent Management Platform (CMP)**:
+  - Google UMP consent flow integrated with `canRequestAds()` blocking before consent.
+  - "Privacy & Ad Choices" button provided in Settings dialog to reopen UMP form on demand.
+- [x] **Offline Graceful Degradation**:
+  - Core game 100% playable with 0 network requests; `OfflineProvider` prevents all crashes and freezes.
+- [ ] **Production Activation Steps (Before Google Play Submission)**:
+  - [ ] 1. Create Arrow Escape Android application entry in Google AdMob Console.
+  - [ ] 2. Update `<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"/>` in `android/app/src/main/AndroidManifest.xml` with production App ID.
+  - [ ] 3. Create Banner, Interstitial, and Rewarded Ad Units in AdMob Console.
+  - [ ] 4. In `src/ads/ad-config.js`, update `PROD_AD_CONFIG` with real IDs and set `isTesting: false`.
+  - [ ] 5. In AdMob Console -> Privacy & messaging, publish the GDPR consent message and US state regulations message.
+  - [ ] 6. Complete Google Play Console "Data safety" section declaring Advertising ID collection by Google Play Services AdMob SDK.
 
 ---
 

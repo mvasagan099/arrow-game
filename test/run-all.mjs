@@ -20,7 +20,8 @@ const suites = [
   'viewport.test.mjs',
   'phase2.test.mjs',
   'phase3.test.mjs',
-  'economy.test.mjs'
+  'economy.test.mjs',
+  'ads.test.mjs'
 ];
 
 async function runSuite(file) {

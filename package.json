@@ -6,7 +6,8 @@
   "description": "A minimalist arrow extraction logic puzzle. Vanilla JS, canvas-rendered, procedurally generated levels.",
   "scripts": {
     "start": "python3 -m http.server 5173 --bind 0.0.0.0",
-    "test":  "node test/run-all.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node test/run-all.mjs",
     "test:smoke": "node test/smoke.mjs",
     "benchmark": "node test/benchmark.mjs"
   },
@@ -20,5 +21,13 @@
     "procedural-generation"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor-community/admob": "^8.3.0",
+    "@capacitor/core": "^8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0"
+  }
 }

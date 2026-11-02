@@ -1,14 +1,14 @@
 # ARROW ESCAPE — DEVELOPMENT STATUS REPORT
 
 ## 1. Executive Summary
-- **Current Project Phase**: Phase 4 — Complete Offline Coins, Rewards, Achievements & Shop System (COMPLETED)
+- **Current Project Phase**: Phase 5 — Google AdMob Monetization, Consent Management & Offline Compatibility (COMPLETED)
 - **Active Git Branch**: `development`
 - **Source Repository**: `https://github.com/mvasagan099/arrow-game`
-- **Application Status**: Fully functional, verified 100% offline, zero network requests, 2,000 deterministically validated solvable levels, central offline coin economy, 7-day daily login reward calendar, cosmetic shop with live arrow/board/trail skins, 24 categorized achievements, 369 automated tests passing with 0 failures.
+- **Application Status**: Fully functional, verified 100% offline gameplay, zero external dependencies required for puzzle play, 2,000 deterministically validated solvable levels (100% pass rate in 40.96s), central offline coin economy, cosmetic shop, Google AdMob monetization architecture with official test IDs, Google UMP consent management, anti-exploit rewarded video ledger, non-intrusive interstitial frequency caps, adaptive banner lifecycle, minimum Capacitor Android native project synced, and 399 automated tests passing with 0 failures across 8 test suites. (Native on-device verification blocked by sandbox lacking Android SDK/JDK).
 
 ---
 
-## 2. Completed Deliverables (Phases 1–4)
+## 2. Completed Deliverables (Phases 1–5)
 
 | Deliverable | Phase | Status | Details |
 |---|---|---|---|
@@ -50,6 +50,14 @@
 | **24 Categorized Achievements** | Phase 4 | Completed | 4 categories (Progression, Skill, Daily, Exploration) awarding +20 coins on unlock with tabbed UI filtering. |
 | **Bounded Audit Log & Persistence** | Phase 4 | Completed | FIFO transaction history capped at 50 entries, storage migration ensuring backward compatibility and corrupted save recovery. |
 | **Phase 4 Automated Test Suite** | Phase 4 | Completed | Implemented `test/economy.test.mjs` (20/20 test cases passing) integrated into `test/run-all.mjs`. |
+| **Capacitor & Android AdMob Foundation** | Phase 5 | Completed | Configured `@capacitor/core@8.6.0`, `@capacitor-community/admob@8.3.0`, generated native `android/` project, test App ID in `AndroidManifest.xml`. |
+| **AdMob Central Configuration & Test IDs** | Phase 5 | Completed | `src/ads/ad-config.js` defining official Google test IDs for App, Banner, Interstitial, and Rewarded ads; strict regex validators. |
+| **Provider Abstraction Layer** | Phase 5 | Completed | Unified `createAdProvider` supporting `NativeAdMobProvider`, `BrowserMockProvider`, and `OfflineProvider` with zero crash guarantees. |
+| **Google UMP Consent Management** | Phase 5 | Completed | `src/ads/ad-consent.js` handling consent flow, `canRequestAds` gating, and "Privacy & Ad Choices" button in Settings. |
+| **Interstitial Frequency & Safety Rules** | Phase 5 | Completed | Minimum 5 levels, minimum 180s cooldown, level $\ge$ 4 only, suppressed during tutorials, dialogs, and active gameplay. |
+| **Voluntary Rewarded Video Ads** | Phase 5 | Completed | +50 coins reward (max 3/day calendar cap) and +1 free hint token; idempotent anti-exploit session ledger. |
+| **Adaptive Banner Lifecycle** | Phase 5 | Completed | Displayed on Home, Levels, Shop, Achievements; strictly hidden in gameplay and tutorials to prevent touch blocking. |
+| **Phase 5 Automated Test Suite** | Phase 5 | Completed | Implemented `test/ads.test.mjs` (30/30 test cases passing) covering all ad lifecycle, consent, frequency, and offline requirements. |
 
 ---
 
@@ -60,7 +68,7 @@
 - **Rendering**: Canvas 2D API with Device Pixel Ratio (DPR) hardware scaling
 - **Audio**: Web Audio API (real-time procedural frequency modulation synthesis, 0 audio files)
 - **Storage**: Browser `localStorage` with dense 6-bit per char base64-encoded bitmap
-- **Target Packaging Engine (Future)**: Capacitor Android (scheduled for Phase 6)
+- **Hybrid Bridge & Ads**: `@capacitor/core@8.6.0`, `@capacitor-community/admob@8.3.0`, Capacitor Android runtime
 
 ---
 
@@ -68,24 +76,25 @@
 
 | Metric | Target | Measured | Result |
 |---|---|---|---|
-| Level Gen Time (Beginner 20x20) | < 5 ms | 0.26 ms | PASS |
-| Level Gen Time (Easy 24x24) | < 10 ms | 0.71 ms | PASS |
-| Level Gen Time (Medium 28x28) | < 15 ms | 2.03 ms | PASS |
-| Level Gen Time (Hard 32x32) | < 25 ms | 6.40 ms | PASS |
-| Level Gen Time (Expert 36x36) | < 35 ms | 16.92 ms | PASS |
-| Level Gen Time (Master 40x40) | < 50 ms | 31.74 ms | PASS |
-| 2,000 Levels Validation Pass Rate | 100% | 2,000 / 2,000 Solvable (0 failures in 39.54s) | PASS |
-| Unified Test Suite Pass Rate | 100% | 369 / 369 tests passed in 6.93s | PASS |
-| Network Requests | 0 | 0 requests (100% offline) | PASS |
+| Level Gen Time (Beginner 20x20) | < 5 ms | 0.23 ms | PASS |
+| Level Gen Time (Easy 24x24) | < 10 ms | 0.67 ms | PASS |
+| Level Gen Time (Medium 28x28) | < 15 ms | 2.11 ms | PASS |
+| Level Gen Time (Hard 32x32) | < 25 ms | 6.75 ms | PASS |
+| Level Gen Time (Expert 36x36) | < 35 ms | 17.91 ms | PASS |
+| Level Gen Time (Master 40x40) | < 50 ms | 32.29 ms | PASS |
+| 2,000 Levels Validation Pass Rate | 100% | 2,000 / 2,000 Solvable (0 failures in 40.96s) | PASS |
+| Unified Test Suite Pass Rate | 100% | 399 / 399 tests passed across 8 suites (7.12s) | PASS |
+| Phase 5 AdMob Test Suite Pass Rate | 100% | 30 / 30 tests passed | PASS |
+| Core Puzzle Network Requests | 0 | 0 requests (100% offline gameplay) | PASS |
 | Touch Target Min Dimension | >= 48 px | >= 54 px (actions), >= 58 px (grid) | PASS |
 | Theme WCAG Contrast | >= 4.5:1 | >= 10:1 (all themes) | PASS |
 | Particle Runtime Allocation | 0 allocs | 0 bytes GC (pre-allocated pool) | PASS |
-| LocalStorage Footprint | < 10 KB | ~3.8 KB (with 50 tx entries + 2,000 bitmap) | PASS |
+| LocalStorage Footprint | < 10 KB | ~4.2 KB (with 50 tx entries + ad ledger + 2,000 bitmap) | PASS |
 
 ---
 
-## 5. Phase 5 Roadmap & Preparation
+## 5. Phase 6 Roadmap & Preparation
 
-1. **Google AdMob Monetization Architecture**: Design non-intrusive banner, interstitial (frequency capped), and rewarded video ad integration.
-2. **Offline Ad Fallbacks**: Strict offline graceful degradation ensuring zero crashes or pauses when offline.
-3. **GDPR / UMP Consent Readiness**: Scaffold consent dialog management for European and global compliance.
+1. **Full Android Packaging**: Configure adaptive app icons, themed splash screen, immersive status/navigation bars, and hardware back button navigation.
+2. **Device Hardware Optimization**: Orientation locking to portrait, high-refresh rate (90Hz / 120Hz) display flags in Android WebView.
+3. **Android Release Builds**: Configure release keystore signing, Gradle build automation, and APK / AAB artifact generation.

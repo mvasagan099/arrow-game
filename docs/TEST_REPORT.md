@@ -11,10 +11,11 @@
 | Phase 2 Themes & Polish | `test/phase2.test.mjs` | 7 suites (30 assertions) | 7 | 0 | PASSED |
 | Phase 3 Mechanics & Solver | `test/phase3.test.mjs` | 9 suites (45 assertions) | 9 | 0 | PASSED |
 | Phase 4 Economy & Shop | `test/economy.test.mjs` | 20 suites (55 assertions) | 20 | 0 | PASSED |
+| Phase 5 AdMob & Consent | `test/ads.test.mjs` | 30 suites (65 assertions) | 30 | 0 | PASSED |
 | Full 2,000 Levels Validation | `test/validate-all-2000-levels.mjs` | 2,000 levels (6 tiers) | 2,000 | 0 | ALL 100% SOLVABLE |
-| **Total** | **Unified Runner** | **369 test points + 2,000 levels** | **2,369** | **0** | **ALL PASSED (100%)** |
+| **Total** | **Unified Runner** | **399 test points + 2,000 levels** | **2,399** | **0** | **ALL PASSED (100%)** |
 
-Execution time for the unified test runner: **6.93 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **39.54 seconds**.
+Execution time for the unified test runner: **7.12 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **40.96 seconds**.
 
 ---
 
@@ -127,6 +128,38 @@ Results:
 18. **Corrupted Save Recovery**: Defensive sanitization ensures invalid/negative numbers or missing maps reset to valid defaults.
 19. **App Restart Persistence**: Full save/load roundtrip verified in mock storage retaining balance, owned cosmetics, and transaction history.
 20. **Audit Log Bounded Retention**: Verified FIFO transaction log caps at 50 entries, preventing localStorage growth.
+
+### 2.7 Phase 5 Google AdMob Monetization, Consent & Offline Verification (`test/ads.test.mjs`)
+1. **Ad Service Initialization**: Initialized service with default data and mock provider; verified state transition to `READY`.
+2. **Browser Mock Provider**: Verified mock provider supports banner show/hide, preloading, interstitial display, and rewarded callbacks without network calls.
+3. **Offline Provider**: Verified offline provider initializes in `UNAVAILABLE` state, returns graceful failure responses without exceptions.
+4. **AdMob Unavailable Fallback**: Verified factory auto-detects environment and safely defaults without crashing.
+5. **Consent Required State**: Verified that when UMP status is `REQUIRED`, `canRequestAds()` returns `false`, blocking ad requests.
+6. **Consent Granted State**: Verified that when UMP status is `OBTAINED` or `NOT_REQUIRED`, `canRequestAds()` returns `true`.
+7. **Consent Declined State**: Verified that when UMP status is `DENIED`, `canRequestAds()` returns `false`.
+8. **Consent Error Resilience**: Network timeouts or UMP exceptions fail safely to non-tracking mode without crashing gameplay.
+9. **Rewarded Ad Success**: Verified watching a video awards +50 coins, updates wallet balance, and increments daily counter.
+10. **Rewarded Ad Dismissal**: Early dismissal without completion grants 0 coins and does not increment daily counter.
+11. **Rewarded Ad Failure Handling**: Verified network/ad playback errors are handled cleanly with zero coin change.
+12. **Duplicate Callback Prevention**: Simulating duplicate native plugin callbacks rejects second event with `duplicate_callback` without double-crediting.
+13. **Reward Transaction Persistence**: Verified rewarded ad grants record transactions in both wallet transactions and `adRewardLedger`.
+14. **Daily Rewarded Coin Limit**: Verified 3 claims per calendar day cap; 4th attempt rejected with `daily_limit_reached`.
+15. **Free Hint Delivery**: Verified rewarded video grants +1 `freeHintToken`, which is stored persistently and consumable on demand.
+16. **Invalid Hint State Rejection**: If no valid move exists on the board, rewarded hint ad is rejected before showing (`no_hint_available`).
+17. **Interstitial Level Frequency Limits**: Enforces minimum 5 completed levels between interstitial displays (`level_frequency_cooldown`).
+18. **Minimum Time Between Interstitials**: Enforces 180s minimum cooldown between interstitials (`time_frequency_cooldown`).
+19. **First-Level Suppression**: Interstitials strictly suppressed on levels 1, 2, and 3 (`early_level_protection`).
+20. **Tutorial Suppression**: Interstitials strictly suppressed during tutorial levels (`tutorial_active`).
+21. **Banner Visibility**: Adaptive banners successfully shown on Home and Shop screens.
+22. **Banner Cleanup**: Banners immediately hidden when entering active puzzle gameplay (`gameplay_active`).
+23. **Rapid Screen Navigation**: Verified 140 rapid back-and-forth screen switches settle cleanly on the correct final state without memory leaks.
+24. **App Background & Resume**: Verified full-screen ad active state manages input suspension flag (`ad-fullscreen-active`).
+25. **Duplicate SDK Listener Prevention**: Duplicate event listener registrations are de-duplicated; `clearAllAdListeners` clears cleanly.
+26. **Ad Timeout Handling**: Verified hanging ad loads time out safely within bounded delay.
+27. **Offline Game Launch**: Verified puzzle generator, collision engine, and moves function 100% offline.
+28. **Existing Wallet Compatibility**: Verified save data with existing coins and cosmetics loads without corruption.
+29. **Existing Progression Compatibility**: Verified high-level progression (Level 500, streaks) remains intact.
+30. **Existing Save-Data Migration**: Migrating older save files without `ads` container automatically populates default frequency state and `freeHintTokens: 0`.
 
 ---
 

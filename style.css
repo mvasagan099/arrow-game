@@ -1705,3 +1705,78 @@ input {
   margin-bottom: 12px;
 }
 
+/* ---------- 14. PHASE 5: ADMOB MONETIZATION & REWARDED ADS ---------- */
+.shop-rewards-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.reward-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-soft);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  gap: 10px;
+}
+
+.reward-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 2px;
+}
+
+.reward-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reward-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.reward-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-sm:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ad-unavailable-notice {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 4px;
+}
+
+/* Fullscreen Ad Input Lock */
+body.ad-fullscreen-active canvas,
+body.ad-fullscreen-active button {
+  pointer-events: none !important;
+}
+
+

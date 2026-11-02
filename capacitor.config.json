@@ -1,0 +1,11 @@
+{
+  "appId": "com.arrowescape.puzzle",
+  "appName": "Arrow Escape",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "AdMob": {
+      "initializeForTesting": true
+    }
+  }
+}

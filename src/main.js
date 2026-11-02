@@ -34,11 +34,26 @@ import { initTutorials, openTutorials } from './ui/tutorials.js';
 import { initAchievements, renderAchievementsGrid, evaluateAchievements, notifyUnlock } from './ui/achievements.js';
 import { todayKey, recordDailyCompletion, rolloverDailyStreak, dailyAlreadyCompleted } from './ui/daily.js';
 import { initDailyReward, renderDailyRewardUI } from './ui/daily-reward.js';
-import { initShop, openShopUI, updateShopBalance } from './ui/shop.js';
+import { initShop, openShopUI, updateShopBalance, updateRewardedAdsUI } from './ui/shop.js';
 
 import { getBalance, canAfford, deductCoins } from './economy/wallet.js';
 import { claimLevelReward, claimDailyChallengeReward } from './economy/rewards.js';
 import { COSTS, COSMETICS } from './economy/economy-config.js';
+
+import {
+  initAdService,
+  showBanner,
+  hideBanner,
+  checkAndShowInterstitial,
+  watchRewardedForCoins,
+  watchRewardedForHint,
+  openPrivacyOptions,
+  getDailyRewardStatus,
+  getAdState,
+  onLevelFinished,
+  hasFreeHintToken,
+  consumeFreeHintToken
+} from './ads/ad-service.js';
 
 import * as persist from './persist.js';
 import * as sfx from './audio/sounds.js';
@@ -88,7 +103,9 @@ document.getElementById('topbar-coin-pill')?.addEventListener('click', () => {
   sfx.sfxButton();
   haptics.hapticTap();
   openShopUI();
+  updateRewardedAdsUI(getDailyRewardStatus(), getAdState());
   openModal('modal-shop');
+  showBanner('shop');
 });
 
 // Bottom action bar
@@ -103,11 +120,13 @@ initActions({
 initHome({
   onPlay: () => {
     hideHome();
+    hideBanner();
     jumpToLevel(data.currentLevel || 1);
   },
   onLevels: () => {
     openLevels(state?.level || data.currentLevel || 1);
     openModal('modal-levels');
+    showBanner('levels');
   },
   onDaily: startDaily,
   onDailyGift: () => {
@@ -116,11 +135,14 @@ initHome({
   },
   onShop: () => {
     openShopUI();
+    updateRewardedAdsUI(getDailyRewardStatus(), getAdState());
     openModal('modal-shop');
+    showBanner('shop');
   },
   onAchievements: () => {
     renderAchievementsGrid();
     openModal('modal-achievements');
+    showBanner('achievements');
   },
   onSettings: () => {
     updateSettingsUI(data.settings);
@@ -154,6 +176,51 @@ initShop({
     }
     persist.save(data);
     markDirty();
+  },
+  onWatchAdCoins: () => {
+    watchRewardedForCoins({
+      onEarned: res => {
+        if (res.success) {
+          sfx.sfxCoin();
+          haptics.hapticCoin();
+          updateAllCoinDisplays();
+          updateRewardedAdsUI(getDailyRewardStatus(), getAdState());
+          toast(`Earned +50 🪙 from Ad! (${res.remainingDaily} claims left today)`, 2400);
+        }
+      },
+      onDismissed: () => {
+        toast('Ad closed without reward.', 1600);
+      },
+      onFailed: err => {
+        if (err?.reason === 'daily_limit_reached') {
+          toast('Daily limit reached (3/3). Come back tomorrow!', 2000);
+        } else {
+          toast('Ad unavailable right now (Offline Mode).', 2000);
+        }
+      }
+    });
+  },
+  onWatchAdHint: () => {
+    watchRewardedForHint(state, {
+      onEarned: res => {
+        if (res.success) {
+          sfx.sfxUnlock();
+          haptics.hapticTap();
+          updateRewardedAdsUI(getDailyRewardStatus(), getAdState());
+          toast('Earned +1 Free Hint Token! 💡', 2200);
+        }
+      },
+      onDismissed: () => {
+        toast('Ad closed without reward.', 1600);
+      },
+      onFailed: err => {
+        if (err?.reason === 'no_hint_available') {
+          toast('No hint needed for this board!', 1800);
+        } else {
+          toast('Ad unavailable right now (Offline Mode).', 2000);
+        }
+      }
+    });
   }
 });
 
@@ -192,6 +259,12 @@ initSettings({
   onHowto: () => {
     closeModal('modal-settings');
     openTutorials();
+  },
+  onPrivacy: async () => {
+    const res = await openPrivacyOptions();
+    if (!res.success) {
+      toast('Privacy options not required in your region or offline.', 2200);
+    }
   }
 }, () => data);
 
@@ -199,6 +272,7 @@ initSettings({
 initLevels({
   onJump: lvl => {
     hideHome();
+    hideBanner();
     jumpToLevel(lvl);
   },
   getData: () => data,
@@ -268,6 +342,13 @@ startLoop(() => state, () => animations, () => ui);
 // Start on Home Screen by default
 showHome(data);
 
+// Initialize Google AdMob subsystem (gracefully falls back offline)
+initAdService(data, d => persist.save(d)).then(() => {
+  showBanner('home');
+}).catch(err => {
+  console.warn('[main] AdService init caught:', err);
+});
+
 /* ----- Theming Engine ----- */
 function applyTheme(themeKey) {
   const theme = THEMES[themeKey] || THEMES.classic;
@@ -298,6 +379,7 @@ function startDaily() {
   state = createGameState(puzzle, { isDaily: true });
   resetGameUi();
   hideHome();
+  hideBanner();
   if (dailyAlreadyCompleted(data)) {
     toast('You already completed today\'s daily challenge!', 2200);
   }
@@ -334,6 +416,7 @@ function doPause() {
     },
     onHome: () => {
       showHome(data);
+      showBanner('home');
     }
   });
 }
@@ -429,6 +512,7 @@ function handleLevelFailed(reason) {
       onRetry: doRestart,
       onHome: () => {
         showHome(data);
+        showBanner('home');
       }
     });
   }, 340);
@@ -448,16 +532,33 @@ function doUndo() {
 function doHint() {
   if (ui.hintArrowId) return; // already active
 
-  if (!canAfford(data, COSTS.HINT)) {
-    sfx.sfxError();
-    haptics.hapticTap();
-    toast(`Need ${COSTS.HINT} 🪙 for a hint! (Balance: ${getBalance(data)} 🪙)`, 2200);
-    return;
-  }
-
   const arrow = findHint(state);
   if (!arrow) {
     toast('No hint available');
+    return;
+  }
+
+  // 1. Check if player has a stored free hint token earned from a rewarded ad
+  if (hasFreeHintToken(data)) {
+    consumeFreeHintToken(data);
+    persist.save(data);
+    updateAllCoinDisplays();
+    ui.hintArrowId = arrow.id;
+    ui.hintStartedAt = performance.now();
+    ui.hintExpiresAt = ui.hintStartedAt + HINT_DURATION_MS;
+    state.hintsUsed++;
+    sfx.sfxHint();
+    haptics.hapticTap();
+    toast(`Used Free Hint Token! (${data.economy.freeHintTokens || 0} left)`, 2200);
+    markDirty();
+    return;
+  }
+
+  // 2. Otherwise check coin wallet
+  if (!canAfford(data, COSTS.HINT)) {
+    sfx.sfxError();
+    haptics.hapticTap();
+    toast(`Need ${COSTS.HINT} 🪙 for a hint! Tip: Watch an ad in the Shop for free coins or hints.`, 2500);
     return;
   }
 
@@ -568,6 +669,9 @@ function onLevelComplete() {
   persist.save(data);
   updateAllCoinDisplays();
 
+  // Record level completion for ad frequency counter
+  onLevelFinished(state.level);
+
   // Achievement evaluation
   const fresh = evaluateAchievements();
   if (fresh.length) {
@@ -591,8 +695,17 @@ function onLevelComplete() {
       onReplay: doRestart,
       onHome: () => {
         showHome(data);
+        showBanner('home');
       }
     }, rewardResult);
+
+    // Natural break interstitial check
+    checkAndShowInterstitial({
+      currentLevel: state.level,
+      isTutorial: false,
+      anyModalOpen: false,
+      isPuzzleActive: false
+    }).catch(() => {});
   }, LEVEL_COMPLETE_DELAY_MS);
 }
 

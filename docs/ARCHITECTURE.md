@@ -45,6 +45,15 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 │   │   ├── rewards.js          # Level, perfect clear, daily login streak, and challenge reward claims
 │   │   ├── shop.js             # Cosmetic item catalog, purchase validation, and equipment state
 │   │   └── transactions.js     # FIFO bounded audit trail (max 50 entries)
+│   ├── ads/
+│   │   ├── ad-config.js        # Official test IDs, regex validators, frequency rules & isAdFree()
+│   │   ├── ad-events.js        # Centralized event bus with duplicate listener prevention
+│   │   ├── ad-consent.js       # Google UMP consent flow & regional privacy choice management
+│   │   ├── ad-frequency.js     # Persistent level spacing (min 5) and time cooldown (180s) tracker
+│   │   ├── ad-rewards.js       # Anti-exploit session ledger, daily 3-ad coin limit, free hint tokens
+│   │   ├── ad-provider.js      # NativeAdMobProvider, BrowserMockProvider, and OfflineProvider
+│   │   ├── ad-lifecycle.js     # Screen transition banner manager & full-screen input blocker
+│   │   └── ad-service.js       # Unified facade coordinating providers, consent, rules, and UI
 │   ├── engine/
 │   │   ├── rng.js              # Seeded Mulberry32 PRNG & sampling utilities
 │   │   ├── arrow.js            # Arrow geometry, coordinates, rotation math & raycasting
@@ -86,6 +95,7 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
     ├── phase2.test.mjs         # Theme palettes, particles, haptics, WCAG contrast
     ├── phase3.test.mjs         # Advanced mechanics, obstacles, color keys, pivots, solver
     ├── economy.test.mjs        # Wallet, rewards, streaks, shop, hint purchase & audit log tests
+    ├── ads.test.mjs            # AdMob providers, UMP consent, frequency capping, lifecycle & offline tests
     ├── validate-all-2000-levels.mjs # Exhaustive 2,000 level seeds validation suite
     ├── benchmark.mjs           # Generation & solver performance benchmark
     └── run-all.mjs             # Unified automated test runner
@@ -250,3 +260,90 @@ Progression is structured into six calibrated tiers:
 - Combines greedy extraction of unobstructed arrows with priority-queue memoized exploration for pivot rotations.
 - Evaluates puzzle solvability deterministically, verifying 100% of all 2,000 level seeds.
 - Includes deterministic fallbacks (`(seed ^ 0xA5A5A5A5) >>> 0`) ensuring no level is ever released without automated solver validation.
+
+---
+
+## 10. Offline Economy & Shop Architecture (Phase 4)
+
+### 10.1 Centralized Coin Wallet (`src/economy/wallet.js`)
+- Manages an atomic integer coin balance initialized with 100 welcome coins for new players.
+- Strict non-negative balance checks (`canAfford(data, cost)` and `deductCoins`).
+- Tracks lifetime statistics (`totalEarned`, `totalSpent`) and validates economy integrity defensively on load.
+
+### 10.2 Reward Systems & Duplicate Mitigation
+- **Level Completion**: Awards +10 coins once per level on initial clear; +5 bonus on initial flawless clear (3 hearts remaining). Replays grant 0 duplicate coins while incrementing `replaysCompleted`.
+- **7-Day Daily Login Calendar**: Ascending reward progression `[10, 15, 20, 25, 30, 40, 100]` with Day 7 crown milestone. Reset upon missed days; idempotent once per calendar date.
+- **Daily Challenges**: +30 coins on solving the daily UTC puzzle.
+- **Achievements**: +20 coins per unlock across 24 achievements.
+
+### 10.3 Cosmetic Shop & Inventory (`src/economy/shop.js`)
+- Four cosmetic categories: Arrow Skins, Board Styles, Particle Trails, Premium Themes.
+- Equipment state stored under `data.economy.equippedCosmetics`, with custom shaders/rendering hooked into `canvas.js` and `particles.js`.
+
+---
+
+## 11. Google AdMob Monetization & Consent Architecture (Phase 5)
+
+### 11.1 Provider Abstraction Pattern (`src/ads/ad-provider.js`)
+The advertisement subsystem decouples game logic from native SDKs using a unified provider interface:
+- **`NativeAdMobProvider`**: Direct bridge to `@capacitor-community/admob` when running inside a native Android Capacitor container.
+- **`BrowserMockProvider`**: Zero-network simulation provider for local browser development and automated testing.
+- **`OfflineProvider`**: Safe fallback activated when offline, in airplane mode, or when AdMob SDK fails to initialize. Guarantees 0 game freezes, 0 latency, and uninterrupted puzzle play.
+
+```
+       +---------------------------------------------+
+       |               Game Entry Point              |
+       |                 (src/main.js)               |
+       +---------------------------------------------+
+                              |
+                              v
+       +---------------------------------------------+
+       |             Ad Service Facade               |
+       |           (src/ads/ad-service.js)           |
+       +---------------------------------------------+
+          |                   |                   |
+          v                   v                   v
++-------------------+ +-------------------+ +-------------------+
+|  ad-frequency.js  | |   ad-consent.js   | |   ad-rewards.js   |
+| (5 lvls, 180s cd, | |  (Google UMP flow | |  (Ledger, anti-   |
+|  lvl 4+, no tut)  | |   & user choices) | |   exploit, tokens)|
++-------------------+ +-------------------+ +-------------------+
+          \                   |                   /
+           +------------------+------------------+
+                              |
+                              v
+       +---------------------------------------------+
+       |           createAdProvider Factory          |
+       +---------------------------------------------+
+          /                   |                   \
+         v                    v                    v
++------------------+ +------------------+ +------------------+
+| NativeAdMob      | | BrowserMock      | | OfflineProvider  |
+| Provider         | | Provider         | | (Graceful No-Op  |
+| (Capacitor/AdMob)| | (Zero-Network)   | |  Offline Play)   |
++------------------+ +------------------+ +------------------+
+```
+
+### 11.2 Privacy & Google UMP Consent Management (`src/ads/ad-consent.js`)
+- Interfaces with the official Google User Messaging Platform (UMP) to gather GDPR/CCPA consent before requesting non-test ads.
+- Consent state is tracked as `UNKNOWN`, `REQUIRED`, `NOT_REQUIRED`, `OBTAINED`, or `DENIED`.
+- `canRequestAds()` strictly blocks ad loading until consent requirements are fulfilled.
+- Provides a dedicated "Privacy & Ad Choices" button in the Settings dialog, allowing players to reopen the consent form and review their data choices at any time.
+
+### 11.3 Natural Break Interstitial Frequency Rules (`src/ads/ad-frequency.js`)
+To preserve player immersion and comply with Google Play Better Ads Standards:
+1. **Level Spacing**: Requires a minimum of 5 completed levels between interstitials (`MIN_LEVELS_BETWEEN_ADS = 5`).
+2. **Time Interval**: Requires a minimum of 180 seconds cooldown between interstitial displays (`MIN_SECONDS_BETWEEN_ADS = 180`).
+3. **Early Level Protection**: Interstitials are suppressed on levels 1–3 (`FIRST_ALLOWED_LEVEL = 4`).
+4. **Context Safety**: Never shown during active gameplay, mid-move, during tutorials, or when modal dialogs are open. Only evaluated on the level victory completion card.
+
+### 11.4 Rewarded Video Ads & Anti-Exploit Ledger (`src/ads/ad-rewards.js`)
+- **100% Voluntary**: Players opt in voluntarily via the Shop dialog; ads are never forced.
+- **Coin Reward**: Watching a video grants +50 coins, capped at 3 claims per calendar day. Automatically rolls over at midnight local time.
+- **Free Hint Token**: Rewarded ad for hints awards +1 `freeHintToken`. Tokens are stored persistently so players do not lose their reward if they restart or navigate away before using it.
+- **Anti-Exploit Ledger**: In-memory and persistent session deduplication prevents double-crediting if native SDK callbacks trigger more than once.
+
+### 11.5 Adaptive Banner Lifecycle (`src/ads/ad-lifecycle.js`)
+- Banners are allowed only on non-gameplay screens: Home (`'home'`), Levels (`'levels'`), Shop (`'shop'`), and Achievements (`'achievements'`).
+- Banners are immediately hidden whenever transitioning into active puzzle solving (`'game'`) or tutorials (`'tutorial'`), eliminating touch interception or board occlusion.
+- Input locking: When a full-screen interstitial or rewarded ad is displayed, `ad-fullscreen-active` is applied to `<body>` to disable game inputs underneath.

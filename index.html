@@ -350,9 +350,15 @@
           <button id="btn-settings-howto" class="btn-secondary full-width">Interactive Tutorials & Guide</button>
         </div>
 
+        <!-- Privacy & Ad Choices (Google UMP) -->
+        <div class="settings-section">
+          <h3>Privacy &amp; Advertising</h3>
+          <button id="btn-settings-privacy" class="btn-secondary full-width">Privacy &amp; Ad Choices (Google UMP)</button>
+        </div>
+
         <!-- Game Info & Open Source Notice -->
         <div class="settings-footer-info">
-          <p class="app-version">Arrow Escape v1.2.0 • Phase 3</p>
+          <p class="app-version">Arrow Escape v1.3.0 • Phase 5</p>
           <p class="app-credits">MIT Licensed • 100% Offline</p>
         </div>
       </div>
@@ -488,6 +494,30 @@
             <span id="shop-coins">100</span>
           </div>
         </div>
+
+        <!-- Optional Rewarded Video Section -->
+        <div class="shop-rewards-banner" id="shop-rewards-banner">
+          <div class="reward-card">
+            <div class="reward-info">
+              <span class="reward-badge">Free Gift</span>
+              <span class="reward-title">Watch Ad &bull; Earn 50 Coins</span>
+              <span class="reward-sub" id="ad-coins-remaining">3 / 3 claims left today</span>
+            </div>
+            <button id="btn-watch-ad-coins" class="btn-primary btn-sm">Watch 🎬</button>
+          </div>
+          <div class="reward-card">
+            <div class="reward-info">
+              <span class="reward-badge">Free Hint</span>
+              <span class="reward-title">Watch Ad &bull; Free Hint Token</span>
+              <span class="reward-sub" id="ad-hints-count">Tokens: 0</span>
+            </div>
+            <button id="btn-watch-ad-hint" class="btn-primary btn-sm">Watch 💡</button>
+          </div>
+          <div id="ad-unavailable-notice" class="ad-unavailable-notice hidden">
+            <span>Advertisements currently unavailable (Offline Mode)</span>
+          </div>
+        </div>
+
         <div class="shop-tabs difficulty-tabs" role="tablist">
           <button data-cat="arrow" class="tab active" role="tab">Arrows</button>
           <button data-cat="board" class="tab" role="tab">Boards</button>

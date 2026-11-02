@@ -20,6 +20,12 @@ export function createDefaultEconomy() {
       streak: 0,
       claimedCount: 0
     },
+    freeHintTokens: 0,           // stored free hints earned from rewarded ads
+    rewardedAdUsage: {
+      dateKey: null,
+      count: 0
+    },
+    adRewardLedger: [],
     ownedCosmetics: [
       'arrow_default',
       'board_default',
@@ -73,6 +79,15 @@ export function ensureEconomy(data) {
     }
     if (!data.economy.dailyCalendar || typeof data.economy.dailyCalendar !== 'object') {
       data.economy.dailyCalendar = defaults.dailyCalendar;
+    }
+    if (typeof data.economy.freeHintTokens !== 'number') {
+      data.economy.freeHintTokens = 0;
+    }
+    if (!data.economy.rewardedAdUsage || typeof data.economy.rewardedAdUsage !== 'object') {
+      data.economy.rewardedAdUsage = { ...defaults.rewardedAdUsage };
+    }
+    if (!Array.isArray(data.economy.adRewardLedger)) {
+      data.economy.adRewardLedger = [];
     }
     if (!Array.isArray(data.economy.ownedCosmetics)) {
       data.economy.ownedCosmetics = [...defaults.ownedCosmetics];

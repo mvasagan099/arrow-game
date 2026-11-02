@@ -12,8 +12,8 @@ import { toast } from './modals.js';
 let _callbacks = {};
 let _activeCategory = 'arrow';
 
-export function initShop({ getData, saveData, onCosmeticEquipped, onThemeChanged }) {
-  _callbacks = { getData, saveData, onCosmeticEquipped, onThemeChanged };
+export function initShop({ getData, saveData, onCosmeticEquipped, onThemeChanged, onWatchAdCoins, onWatchAdHint }) {
+  _callbacks = { getData, saveData, onCosmeticEquipped, onThemeChanged, onWatchAdCoins, onWatchAdHint };
 
   // Category tab switching
   const tabs = document.querySelectorAll('.shop-tabs button[data-cat]');
@@ -25,12 +25,59 @@ export function initShop({ getData, saveData, onCosmeticEquipped, onThemeChanged
       renderShopItems();
     });
   });
+
+  // Rewarded Ad Buttons
+  document.getElementById('btn-watch-ad-coins')?.addEventListener('click', () => {
+    sfx.sfxButton();
+    haptics.hapticTap();
+    _callbacks.onWatchAdCoins?.();
+  });
+
+  document.getElementById('btn-watch-ad-hint')?.addEventListener('click', () => {
+    sfx.sfxButton();
+    haptics.hapticTap();
+    _callbacks.onWatchAdHint?.();
+  });
 }
 
 export function openShopUI() {
   updateShopBalance();
+  updateRewardedAdsUI();
   renderShopItems();
 }
+
+export function updateRewardedAdsUI(dailyStatus = null, adState = 'READY') {
+  const data = _callbacks.getData ? _callbacks.getData() : null;
+  if (!data) return;
+
+  const remEl = document.getElementById('ad-coins-remaining');
+  const btnCoins = document.getElementById('btn-watch-ad-coins');
+  const hintEl = document.getElementById('ad-hints-count');
+  const noticeEl = document.getElementById('ad-unavailable-notice');
+
+  const count = data.economy?.rewardedAdUsage?.count || 0;
+  const remaining = Math.max(0, 3 - count);
+  const canWatch = remaining > 0 && adState !== 'UNAVAILABLE';
+
+  if (remEl) {
+    remEl.textContent = `${remaining} / 3 claims left today`;
+  }
+
+  if (btnCoins) {
+    btnCoins.disabled = !canWatch;
+    btnCoins.textContent = remaining > 0 ? 'Watch 🎬 (+50)' : 'Claimed ✓';
+  }
+
+  if (hintEl) {
+    const tokens = data.economy?.freeHintTokens || 0;
+    hintEl.textContent = `Tokens: ${tokens}`;
+  }
+
+  if (noticeEl) {
+    noticeEl.classList.toggle('hidden', adState !== 'UNAVAILABLE');
+  }
+}
+
 
 export function updateShopBalance() {
   const data = _callbacks.getData ? _callbacks.getData() : null;

@@ -74,6 +74,12 @@ export function initSettings(handlers, getData) {
     hapticTap();
     _handlers.onHowto?.();
   });
+
+  document.getElementById('btn-settings-privacy')?.addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    _handlers.onPrivacy?.();
+  });
 }
 
 export function updateSettingsUI(settings) {
