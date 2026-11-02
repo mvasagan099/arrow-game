@@ -4,6 +4,7 @@
    migrated forward on load. */
 
 import { STORAGE_KEY, STORAGE_VERSION, MAX_LEVEL } from './config.js';
+import { createDefaultEconomy, ensureEconomy } from './economy/wallet.js';
 
 function emptyData() {
   return {
@@ -16,7 +17,11 @@ function emptyData() {
       cleanClears: 0,        // cleared without using a hint
       currentStreak: 0,
       maxStreak: 0,
-      maxLevel: 1
+      maxLevel: 1,
+      cleanHardClears: 0,
+      cleanMasterClears: 0,
+      replaysCompleted: 0,
+      themesUsed: ['classic']
     },
     achievements: {},          // id -> unlockedAt (ms epoch)
     settings: {
@@ -33,7 +38,8 @@ function emptyData() {
       lastResultKey: null,
       history: []
     },
-    tutorials: {}
+    tutorials: {},
+    economy: createDefaultEconomy()
   };
 }
 
@@ -82,6 +88,7 @@ function migrate(data) {
   data.daily.history = Array.isArray(data.daily.history) ? data.daily.history : [];
   data.tutorials    = data.tutorials || {};
   data.achievements = data.achievements || {};
+  data.economy      = ensureEconomy(data);
   if (typeof data.currentLevel !== 'number' || data.currentLevel < 1) data.currentLevel = 1;
   if (typeof data.completedBits !== 'string') data.completedBits = '';
   data.v = STORAGE_VERSION;

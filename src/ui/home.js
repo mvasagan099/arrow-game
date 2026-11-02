@@ -1,10 +1,13 @@
 /* Home Screen UI manager for Arrow Escape:
-   Handles hero CTA, stats display, quick-navigation cards, and transitions. */
+   Handles hero CTA, stats display, coin pill, quick-navigation cards,
+   daily gift notifications, and transitions. */
 
 import { tierForLevel } from '../config.js';
 import { sfxButton } from '../audio/sounds.js';
 import { hapticTap } from '../audio/haptics.js';
 import { startHomeBg, stopHomeBg } from './home-bg.js';
+import { getBalance } from '../economy/wallet.js';
+import { isDailyRewardAvailable } from './daily-reward.js';
 
 let _handlers = {};
 
@@ -29,6 +32,18 @@ export function initHome(handlers) {
     _handlers.onDaily?.();
   });
 
+  document.getElementById('btn-home-daily-gift')?.addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    _handlers.onDailyGift?.();
+  });
+
+  document.getElementById('btn-home-shop')?.addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    _handlers.onShop?.();
+  });
+
   document.getElementById('btn-home-achievements')?.addEventListener('click', () => {
     sfxButton();
     hapticTap();
@@ -46,9 +61,17 @@ export function initHome(handlers) {
     hapticTap();
     _handlers.onHowto?.();
   });
+
+  // Tap coin pill to open shop
+  document.getElementById('home-coin-pill')?.addEventListener('click', () => {
+    sfxButton();
+    hapticTap();
+    _handlers.onShop?.();
+  });
 }
 
 export function updateHomeView(data) {
+  if (!data) return;
   const currentLvl = data.currentLevel || 1;
   const tier = tierForLevel(currentLvl);
 
@@ -75,6 +98,19 @@ export function updateHomeView(data) {
 
   const perfectEl = document.getElementById('home-stat-perfect');
   if (perfectEl) perfectEl.textContent = data.stats.perfectClears || 0;
+
+  // Update Coin Wallet Balance
+  const coinsEl = document.getElementById('home-coins');
+  if (coinsEl) {
+    coinsEl.textContent = getBalance(data);
+  }
+
+  // Notification indicator on Daily Gift button
+  const giftBtn = document.getElementById('btn-home-daily-gift');
+  if (giftBtn) {
+    const available = isDailyRewardAvailable(data);
+    giftBtn.classList.toggle('has-gift', available);
+  }
 }
 
 export function showHome(data) {

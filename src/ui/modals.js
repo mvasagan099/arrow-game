@@ -79,7 +79,7 @@ export function toast(message, ms = 1800) {
 /**
  * Modern Victory Screen display
  */
-export function showLevelComplete(levelLabel, stats, { onNext, onReplay, onHome }) {
+export function showLevelComplete(levelLabel, stats, { onNext, onReplay, onHome }, reward = null) {
   const modal = document.getElementById('modal-victory');
   if (!modal) return;
 
@@ -97,6 +97,34 @@ export function showLevelComplete(levelLabel, stats, { onNext, onReplay, onHome 
       starsHtml += `<span class="star-icon ${active ? 'active' : ''}">${active ? '★' : '☆'}</span>`;
     }
     starsEl.innerHTML = starsHtml;
+  }
+
+  // Coin Reward Breakdown
+  const coinsWrap = document.getElementById('vc-coins');
+  const coinAmtEl = document.getElementById('vc-coin-amount');
+  const coinDetailEl = document.getElementById('vc-coin-detail');
+  if (coinsWrap && coinAmtEl) {
+    if (reward && reward.awarded > 0) {
+      coinAmtEl.textContent = `+${reward.awarded}`;
+      if (coinDetailEl) {
+        if (reward.baseAmount && reward.perfectAmount) {
+          coinDetailEl.textContent = `(+${reward.baseAmount} Clear, +${reward.perfectAmount} Flawless)`;
+        } else if (reward.baseAmount) {
+          coinDetailEl.textContent = `(+${reward.baseAmount} Clear)`;
+        } else if (reward.perfectAmount) {
+          coinDetailEl.textContent = `(+${reward.perfectAmount} Flawless Clear)`;
+        } else {
+          coinDetailEl.textContent = 'Daily Challenge Reward';
+        }
+      }
+      coinsWrap.classList.remove('hidden');
+    } else if (reward && reward.isReplay) {
+      coinAmtEl.textContent = '+0';
+      if (coinDetailEl) coinDetailEl.textContent = '(Replay: reward already claimed)';
+      coinsWrap.classList.remove('hidden');
+    } else {
+      coinsWrap.classList.add('hidden');
+    }
   }
 
   // Performance badges

@@ -38,7 +38,13 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 ├── src/
 │   ├── main.js                 # Entry point, singletons & screen coordinator
 │   ├── config.js               # Centralized THEMES, 6 tiers, directions, color keys
-│   ├── persist.js              # Namespaced localStorage with packed bitmask, history & tutorial migrations
+│   ├── persist.js              # Namespaced localStorage with packed bitmask, history, tutorials & economy
+│   ├── economy/
+│   │   ├── economy-config.js   # Coin reward values, hint costs, daily calendar, cosmetics catalog
+│   │   ├── wallet.js           # Atomic balance operations, affordance checks, credit/debit
+│   │   ├── rewards.js          # Level, perfect clear, daily login streak, and challenge reward claims
+│   │   ├── shop.js             # Cosmetic item catalog, purchase validation, and equipment state
+│   │   └── transactions.js     # FIFO bounded audit trail (max 50 entries)
 │   ├── engine/
 │   │   ├── rng.js              # Seeded Mulberry32 PRNG & sampling utilities
 │   │   ├── arrow.js            # Arrow geometry, coordinates, rotation math & raycasting
@@ -50,9 +56,9 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 │   ├── render/
 │   │   ├── loop.js             # Dirty-flag requestAnimationFrame loop, DPR & visibility pause
 │   │   ├── viewport.js         # Pan/zoom math, coordinate transformations
-│   │   ├── canvas.js           # Theme-aware grid, obstacles, color-key badges, pivot joints & particles
+│   │   ├── canvas.js           # Theme-aware grid, obstacles, color-key badges, pivot joints, cosmetics & particles
 │   │   ├── animations.js       # Snake unfurl exit, red pulse, wiggle, win
-│   │   └── particles.js        # Zero-allocation pooled particle system (140 pool)
+│   │   └── particles.js        # Zero-allocation pooled particle system (140 pool) with cosmetic trails
 │   ├── input/
 │   │   ├── pointer.js          # Unified PointerEvents (tap, pan, pinch, wheel)
 │   │   └── keyboard.js         # Accessibility and keyboard shortcuts
@@ -61,16 +67,17 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 │   │   ├── home-bg.js          # Ambient drifting ghost arrows canvas
 │   │   ├── settings.js         # Settings & theme selector modal controller
 │   │   ├── tutorials.js        # Interactive 7-topic visual tutorial guide & progress tracker
-│   │   ├── topbar.js           # Header hearts, level number, tier badge, pause
+│   │   ├── topbar.js           # Header hearts, level number, tier badge, coins pill, pause
 │   │   ├── actions.js          # Bottom action bar (Undo, Hint, Center, Restart)
-│   │   ├── drawer.js           # Left drawer menu, stats, settings toggles
-│   │   ├── modals.js           # Modal stack manager, win card, fail card, pause, toast
+│   │   ├── daily-reward.js     # 7-day daily login calendar modal & streak tracker
+│   │   ├── shop.js             # Cosmetic shop modal (Arrows, Boards, Trails, Themes)
+│   │   ├── modals.js           # Modal stack manager, victory card with coin rewards, fail card, pause, toast
 │   │   ├── levels.js           # Paginated 2,000-level select grid with locking & stats
-│   │   ├── achievements.js     # Achievement evaluation & notifications
+│   │   ├── achievements.js     # 24 achievements across 4 categories with filter tabs & +20 coin claims
 │   │   └── daily.js            # Daily UTC challenge, streak rollover & 60-day history
 │   └── audio/
-│       ├── sounds.js           # Procedural Web Audio API sound effects (sfxPivot, sfxUnlock, sfxObstacle)
-│       └── haptics.js          # Cross-platform vibration abstraction (hapticRotate, hapticUnlock)
+│       ├── sounds.js           # Procedural Web Audio API sound effects (sfxCoin, sfxPurchase, sfxEquip, sfxError)
+│       └── haptics.js          # Cross-platform vibration abstraction (hapticCoin, hapticPurchase)
 └── test/
     ├── smoke.mjs               # Procedural level solvability validation across 6 tiers
     ├── engine.test.mjs         # Core mechanics, movement, blocking, undo tests
@@ -78,6 +85,7 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
     ├── viewport.test.mjs       # Mobile responsive layout & coordinates tests
     ├── phase2.test.mjs         # Theme palettes, particles, haptics, WCAG contrast
     ├── phase3.test.mjs         # Advanced mechanics, obstacles, color keys, pivots, solver
+    ├── economy.test.mjs        # Wallet, rewards, streaks, shop, hint purchase & audit log tests
     ├── validate-all-2000-levels.mjs # Exhaustive 2,000 level seeds validation suite
     ├── benchmark.mjs           # Generation & solver performance benchmark
     └── run-all.mjs             # Unified automated test runner

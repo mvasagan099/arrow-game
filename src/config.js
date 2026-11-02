@@ -231,29 +231,49 @@ export const DEFAULT_THEME = 'classic';
 export const STORAGE_KEY = 'arrows-escape:v1';
 export const STORAGE_VERSION = 1;
 
-/* Achievements — 15 total */
+/* Achievements — Comprehensive Categories for Phase 4 */
 export const ACHIEVEMENTS = [
-  { id: 'first',         title: 'First Steps',        desc: 'Clear your first level',                icon: 'star',     test: s => s.stats.totalCompleted >= 1 },
-  { id: 'solved10',      title: 'Warming Up',         desc: 'Clear 10 levels',                       icon: 'flame',    test: s => s.stats.totalCompleted >= 10 },
-  { id: 'solved100',     title: 'Centurion',          desc: 'Clear 100 levels',                      icon: 'medal',    test: s => s.stats.totalCompleted >= 100 },
-  { id: 'solved500',     title: 'Arrow Master',       desc: 'Clear 500 levels',                      icon: 'crown',    test: s => s.stats.totalCompleted >= 500 },
-  { id: 'streak5',       title: 'On a Roll',          desc: 'Win-streak of 5',                       icon: 'zap',      test: s => s.stats.maxStreak  >= 5  },
-  { id: 'streak25',      title: 'Unstoppable',        desc: 'Win-streak of 25',                      icon: 'bolt',     test: s => s.stats.maxStreak  >= 25 },
-  { id: 'streak100',     title: 'Legendary Streak',   desc: 'Win-streak of 100',                     icon: 'comet',    test: s => s.stats.maxStreak  >= 100 },
-  { id: 'tierEasy',      title: 'Stepping Up',        desc: 'Reach the Easy tier',                   icon: 'arrow',    test: s => s.stats.maxLevel  >= 201 },
-  { id: 'tierMedium',    title: 'Focused Mind',       desc: 'Reach the Medium tier',                 icon: 'arrow',    test: s => s.stats.maxLevel  >= 501 },
-  { id: 'tierHard',      title: 'Hardcore',           desc: 'Reach the Hard tier',                   icon: 'arrow',    test: s => s.stats.maxLevel  >= 901 },
-  { id: 'tierExpert',    title: 'Stoic Master',       desc: 'Reach the Expert tier',                 icon: 'arrow',    test: s => s.stats.maxLevel  >= 1301 },
-  { id: 'tierMaster',    title: 'Grandmaster',        desc: 'Reach the Master tier',                 icon: 'skull',    test: s => s.stats.maxLevel  >= 1701 },
-  { id: 'noHint',        title: 'No Help Needed',     desc: 'Clear a level without using a hint',    icon: 'eye',      test: s => s.stats.cleanClears >= 1 },
-  { id: 'perfect',       title: 'Flawless',           desc: 'Clear a level without losing a heart',  icon: 'shield',   test: s => s.stats.perfectClears >= 1 },
-  { id: 'daily7',        title: 'Weekly Habit',       desc: 'Complete 7 daily challenges',           icon: 'sun',      test: s => s.dailyStats.totalCompleted >= 7 },
-  { id: 'daily30',       title: 'Devoted',            desc: 'Complete 30 daily challenges',          icon: 'sun',      test: s => s.dailyStats.totalCompleted >= 30 }
+  // Progression Achievements
+  { id: 'first',         category: 'progression', title: 'First Steps',        desc: 'Clear your first level',                icon: 'star',   reward: 20, test: s => s.stats.totalCompleted >= 1 },
+  { id: 'solved10',      category: 'progression', title: 'Warming Up',         desc: 'Clear 10 levels',                       icon: 'flame',  reward: 20, test: s => s.stats.totalCompleted >= 10 },
+  { id: 'solved50',      category: 'progression', title: 'Half Century',       desc: 'Clear 50 levels',                       icon: 'medal',  reward: 20, test: s => s.stats.totalCompleted >= 50 },
+  { id: 'solved100',     category: 'progression', title: 'Centurion',          desc: 'Clear 100 levels',                      icon: 'medal',  reward: 20, test: s => s.stats.totalCompleted >= 100 },
+  { id: 'solved250',     category: 'progression', title: 'Pathfinder',         desc: 'Clear 250 levels',                      icon: 'crown',  reward: 20, test: s => s.stats.totalCompleted >= 250 },
+  { id: 'solved500',     category: 'progression', title: 'Arrow Master',       desc: 'Clear 500 levels',                      icon: 'crown',  reward: 20, test: s => s.stats.totalCompleted >= 500 },
+  { id: 'solved1000',    category: 'progression', title: 'Grand Voyager',      desc: 'Clear 1,000 levels',                    icon: 'comet',  reward: 20, test: s => s.stats.totalCompleted >= 1000 },
+  { id: 'solved2000',    category: 'progression', title: 'Puzzle Deity',       desc: 'Clear all 2,000 levels',                icon: 'crown',  reward: 20, test: s => s.stats.totalCompleted >= 2000 },
+  { id: 'tierEasy',      category: 'progression', title: 'Stepping Up',        desc: 'Reach the Easy tier',                   icon: 'arrow',  reward: 20, test: s => s.stats.maxLevel >= 201 },
+  { id: 'tierMedium',    category: 'progression', title: 'Focused Mind',       desc: 'Reach the Medium tier',                 icon: 'arrow',  reward: 20, test: s => s.stats.maxLevel >= 501 },
+  { id: 'tierHard',      category: 'progression', title: 'Hardcore',           desc: 'Reach the Hard tier',                   icon: 'arrow',  reward: 20, test: s => s.stats.maxLevel >= 901 },
+  { id: 'tierExpert',    category: 'progression', title: 'Stoic Master',       desc: 'Reach the Expert tier',                 icon: 'arrow',  reward: 20, test: s => s.stats.maxLevel >= 1301 },
+  { id: 'tierMaster',    category: 'progression', title: 'Grandmaster',        desc: 'Reach the Master tier',                 icon: 'skull',  reward: 20, test: s => s.stats.maxLevel >= 1701 },
+
+  // Skill Achievements
+  { id: 'perfect',       category: 'skill',       title: 'Flawless',           desc: 'Clear a level without losing a heart',  icon: 'shield', reward: 20, test: s => s.stats.perfectClears >= 1 },
+  { id: 'perfect10',     category: 'skill',       title: 'Precision Master',   desc: 'Clear 10 levels without losing a heart',icon: 'shield', reward: 20, test: s => s.stats.perfectClears >= 10 },
+  { id: 'perfect50',     category: 'skill',       title: 'Untouchable',        desc: 'Clear 50 levels without losing a heart',icon: 'shield', reward: 20, test: s => s.stats.perfectClears >= 50 },
+  { id: 'noHint',        category: 'skill',       title: 'No Help Needed',     desc: 'Clear a level without using a hint',    icon: 'eye',    reward: 20, test: s => s.stats.cleanClears >= 1 },
+  { id: 'cleanHard',     category: 'skill',       title: 'Pure Instinct',      desc: 'Clear a Hard level without hints',      icon: 'zap',    reward: 20, test: s => (s.stats.cleanHardClears || 0) >= 1 },
+  { id: 'cleanMaster',   category: 'skill',       title: 'Master Mind',        desc: 'Clear a Master level without hints',    icon: 'skull',  reward: 20, test: s => (s.stats.cleanMasterClears || 0) >= 1 },
+  { id: 'streak5',       category: 'skill',       title: 'On a Roll',          desc: 'Win-streak of 5',                       icon: 'zap',    reward: 20, test: s => s.stats.maxStreak >= 5 },
+  { id: 'streak25',      category: 'skill',       title: 'Unstoppable',        desc: 'Win-streak of 25',                      icon: 'bolt',   reward: 20, test: s => s.stats.maxStreak >= 25 },
+  { id: 'streak100',     category: 'skill',       title: 'Legendary Streak',   desc: 'Win-streak of 100',                     icon: 'comet',  reward: 20, test: s => s.stats.maxStreak >= 100 },
+
+  // Daily Achievements
+  { id: 'daily1',        category: 'daily',       title: 'Daily Dedication',   desc: 'Complete your first daily challenge',   icon: 'sun',    reward: 20, test: s => (s.dailyStats.totalCompleted || 0) >= 1 },
+  { id: 'dailyStreak3',  category: 'daily',       title: 'Three in a Row',     desc: 'Reach a 3-day daily challenge streak',  icon: 'flame',  reward: 20, test: s => (s.dailyStats.maxStreak || 0) >= 3 },
+  { id: 'daily7',        category: 'daily',       title: 'Weekly Habit',       desc: 'Reach a 7-day daily challenge streak',  icon: 'sun',    reward: 20, test: s => (s.dailyStats.maxStreak || 0) >= 7 || (s.dailyStats.totalCompleted || 0) >= 7 },
+  { id: 'daily30',       category: 'daily',       title: 'Devoted',            desc: 'Complete 30 daily challenges',          icon: 'sun',    reward: 20, test: s => (s.dailyStats.totalCompleted || 0) >= 30 },
+
+  // Exploration Achievements
+  { id: 'tryThemes',     category: 'exploration', title: 'Fashionista',        desc: 'Try all 4 original themes',             icon: 'star',   reward: 20, test: s => (s.stats.themesUsed && s.stats.themesUsed.length >= 4) },
+  { id: 'replayLevel',   category: 'exploration', title: 'Perfectionist',      desc: 'Replay and complete a previously solved level', icon: 'arrow', reward: 20, test: s => (s.stats.replaysCompleted || 0) >= 1 },
+  { id: 'completeTutorials', category: 'exploration', title: 'Scholar',        desc: 'Complete all 7 interactive tutorials',  icon: 'eye',    reward: 20, test: s => (s.tutorials && Object.keys(s.tutorials).length >= 7) }
 ];
 
 /* Symbol glyphs for achievement icons. */
 export const ACH_ICONS = {
-  star:   '*', flame: '~', medal: '#', crown: '^', zap: '!',
-  bolt:   '/', comet: '<', arrow: '>', skull: 'x', eye: 'o',
-  shield: '+', sun: 'O'
+  star:   '★', flame: '🔥', medal: '🎖️', crown: '👑', zap: '⚡',
+  bolt:   '⚡', comet: '☄️', arrow: '➤', skull: '💀', eye: '👁️',
+  shield: '🛡️', sun: '☀️'
 };

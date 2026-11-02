@@ -15,7 +15,7 @@ import { tip } from './engine/arrow.js';
 
 import { setupCanvas, markDirty, startLoop, onResize as onCanvasResize } from './render/loop.js';
 import { resetView, zoomAt, getGeom, cellCenter } from './render/viewport.js';
-import { invalidatePalette, readPalette } from './render/canvas.js';
+import { invalidatePalette, readPalette, setRenderCosmetics } from './render/canvas.js';
 import { setReduceMotion, makeExtract, makeBlock, makeWiggle, makeWin } from './render/animations.js';
 import { emitExtractParticles, emitBlockParticles, emitWinParticles, clearAllParticles } from './render/particles.js';
 
@@ -25,7 +25,7 @@ import { attachKeyboard } from './input/keyboard.js';
 import { initHome, showHome, hideHome, updateHomeView } from './ui/home.js';
 import { initHomeBg, setHomeBgReduceMotion } from './ui/home-bg.js';
 import { initSettings, updateSettingsUI } from './ui/settings.js';
-import { initTopbar, setLevelDisplay, renderHearts, setProgress } from './ui/topbar.js';
+import { initTopbar, setLevelDisplay, renderHearts, setProgress, setTopbarCoins } from './ui/topbar.js';
 import { initActions, setUndoEnabled } from './ui/actions.js';
 import { initModals, open as openModal, close as closeModal, closeTop as closeTopModal,
          anyOpen as anyModalOpen, toast, showLevelComplete, hideLevelComplete, showLevelFailed, showPause } from './ui/modals.js';
@@ -33,6 +33,12 @@ import { initLevels, openLevels } from './ui/levels.js';
 import { initTutorials, openTutorials } from './ui/tutorials.js';
 import { initAchievements, renderAchievementsGrid, evaluateAchievements, notifyUnlock } from './ui/achievements.js';
 import { todayKey, recordDailyCompletion, rolloverDailyStreak, dailyAlreadyCompleted } from './ui/daily.js';
+import { initDailyReward, renderDailyRewardUI } from './ui/daily-reward.js';
+import { initShop, openShopUI, updateShopBalance } from './ui/shop.js';
+
+import { getBalance, canAfford, deductCoins } from './economy/wallet.js';
+import { claimLevelReward, claimDailyChallengeReward } from './economy/rewards.js';
+import { COSTS, COSMETICS } from './economy/economy-config.js';
 
 import * as persist from './persist.js';
 import * as sfx from './audio/sounds.js';
@@ -50,8 +56,13 @@ const ui = {
   panning: false
 };
 
+// Register cosmetic shop themes in THEMES
+if (COSMETICS.theme_cyberpunk?.themeDef) THEMES.cyberpunk = COSMETICS.theme_cyberpunk.themeDef;
+if (COSMETICS.theme_forest?.themeDef) THEMES.forest = COSMETICS.theme_forest.themeDef;
+
 /* ----- Boot & Initialization ----- */
 applyTheme(data.settings.theme || 'classic');
+setRenderCosmetics(data.economy?.equippedCosmetics);
 setReduceMotion(data.settings.reduceMotion);
 setHomeBgReduceMotion(data.settings.reduceMotion);
 sfx.setMuted(!data.settings.sound);
@@ -60,9 +71,24 @@ rolloverDailyStreak(data);
 
 initModals();
 
+export function updateAllCoinDisplays() {
+  const bal = getBalance(data);
+  setTopbarCoins(bal);
+  updateShopBalance();
+  updateHomeView(data);
+}
+
 // Topbar (with pause handler)
 initTopbar({
   onPause: doPause
+});
+
+// Topbar Coin Pill click -> open Shop
+document.getElementById('topbar-coin-pill')?.addEventListener('click', () => {
+  sfx.sfxButton();
+  haptics.hapticTap();
+  openShopUI();
+  openModal('modal-shop');
 });
 
 // Bottom action bar
@@ -84,6 +110,14 @@ initHome({
     openModal('modal-levels');
   },
   onDaily: startDaily,
+  onDailyGift: () => {
+    renderDailyRewardUI();
+    openModal('modal-daily-reward');
+  },
+  onShop: () => {
+    openShopUI();
+    openModal('modal-shop');
+  },
   onAchievements: () => {
     renderAchievementsGrid();
     openModal('modal-achievements');
@@ -93,6 +127,34 @@ initHome({
     openModal('modal-settings');
   },
   onHowto: () => openTutorials()
+});
+
+// Daily Login Rewards Setup
+initDailyReward({
+  getData: () => data,
+  saveData: d => persist.save(d),
+  onRewardClaimed: () => {
+    updateAllCoinDisplays();
+  }
+});
+
+// Cosmetic Shop Setup
+initShop({
+  getData: () => data,
+  saveData: d => persist.save(d),
+  onCosmeticEquipped: () => {
+    setRenderCosmetics(data.economy?.equippedCosmetics);
+    markDirty();
+  },
+  onThemeChanged: themeDef => {
+    if (!THEMES[themeDef.id]) THEMES[themeDef.id] = themeDef;
+    applyTheme(themeDef.id);
+    if (!data.stats.themesUsed.includes(themeDef.id)) {
+      data.stats.themesUsed.push(themeDef.id);
+    }
+    persist.save(data);
+    markDirty();
+  }
 });
 
 // Interactive Tutorials Setup
@@ -291,7 +353,7 @@ function doExtract(arrowId) {
     const tipCell = tip(result.arrow);
     const cc = cellCenter(tipCell.x, tipCell.y, geom);
     const palette = readPalette();
-    emitExtractParticles(cc.x, cc.y, result.arrow.dir, palette.accent || palette.ink);
+    emitExtractParticles(cc.x, cc.y, result.arrow.dir, palette.accent || palette.ink, data.economy?.equippedCosmetics?.trail);
 
     // If key arrow escaped, notify unlock
     if (result.unlockedKey) {
@@ -384,11 +446,31 @@ function doUndo() {
 }
 
 function doHint() {
+  if (ui.hintArrowId) return; // already active
+
+  if (!canAfford(data, COSTS.HINT)) {
+    sfx.sfxError();
+    haptics.hapticTap();
+    toast(`Need ${COSTS.HINT} 🪙 for a hint! (Balance: ${getBalance(data)} 🪙)`, 2200);
+    return;
+  }
+
   const arrow = findHint(state);
   if (!arrow) {
     toast('No hint available');
     return;
   }
+
+  const res = deductCoins(data, COSTS.HINT, 'hint_purchase', `Hint for Level ${state.level}`);
+  if (!res.success) {
+    sfx.sfxError();
+    toast('Failed to purchase hint', 1800);
+    return;
+  }
+
+  persist.save(data);
+  updateAllCoinDisplays();
+
   ui.hintArrowId = arrow.id;
   ui.hintStartedAt = performance.now();
   ui.hintExpiresAt = ui.hintStartedAt + HINT_DURATION_MS;
@@ -444,28 +526,53 @@ function onLevelComplete() {
 
   const perfect = state.hearts === HEARTS_MAX;
   const noHint = state.hintsUsed === 0;
+  let rewardResult = null;
 
   if (state.isDaily) {
     if (!dailyAlreadyCompleted(data)) {
       recordDailyCompletion(data, todayKey());
     }
+    rewardResult = claimDailyChallengeReward(data, todayKey());
+    if (rewardResult.awarded > 0) {
+      setTimeout(() => {
+        sfx.sfxCoin();
+        haptics.hapticCoin();
+      }, 350);
+    }
   } else {
-    if (!persist.isSolved(data, state.level)) {
+    const wasSolved = persist.isSolved(data, state.level);
+    rewardResult = claimLevelReward(data, state.level, perfect);
+
+    if (wasSolved) {
+      data.stats.replaysCompleted = (data.stats.replaysCompleted || 0) + 1;
+    } else {
       persist.markSolved(data, state.level);
       data.stats.totalCompleted = (data.stats.totalCompleted || 0) + 1;
       data.stats.currentStreak = (data.stats.currentStreak || 0) + 1;
       if (data.stats.currentStreak > data.stats.maxStreak) data.stats.maxStreak = data.stats.currentStreak;
       if (perfect) data.stats.perfectClears = (data.stats.perfectClears || 0) + 1;
-      if (noHint)  data.stats.cleanClears   = (data.stats.cleanClears   || 0) + 1;
+      if (noHint) {
+        data.stats.cleanClears = (data.stats.cleanClears || 0) + 1;
+        if (state.level >= 901 && state.level <= 1300) data.stats.cleanHardClears = (data.stats.cleanHardClears || 0) + 1;
+        if (state.level >= 1701) data.stats.cleanMasterClears = (data.stats.cleanMasterClears || 0) + 1;
+      }
+    }
+
+    if (rewardResult.awarded > 0) {
+      setTimeout(() => {
+        sfx.sfxCoin();
+        haptics.hapticCoin();
+      }, 350);
     }
   }
   persist.save(data);
-  updateHomeView(data);
+  updateAllCoinDisplays();
 
   // Achievement evaluation
   const fresh = evaluateAchievements();
   if (fresh.length) {
     persist.save(data);
+    updateAllCoinDisplays();
     notifyUnlock(fresh);
     setTimeout(() => sfx.sfxAchievement(), 300);
   }
@@ -485,7 +592,7 @@ function onLevelComplete() {
       onHome: () => {
         showHome(data);
       }
-    });
+    }, rewardResult);
   }, LEVEL_COMPLETE_DELAY_MS);
 }
 

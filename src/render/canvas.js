@@ -4,6 +4,7 @@
    layer. Stateless beyond a few cached colors. */
 
 import { DIRS, THEMES, DEFAULT_THEME, COLOR_KEYS } from '../config.js';
+import { COSMETICS } from '../economy/economy-config.js';
 import { getGeom, cellCenter } from './viewport.js';
 import { drawAnimations } from './animations.js';
 import { updateAndDrawParticles } from './particles.js';
@@ -12,6 +13,26 @@ import { updateAndDrawParticles } from './particles.js';
    Cached for high performance; invalidated on theme change. */
 let currentThemeKey = DEFAULT_THEME;
 let cachedPalette = null;
+let activeCosmetics = {
+  arrow: 'arrow_default',
+  board: 'board_default',
+  trail: 'trail_default'
+};
+
+export function setRenderCosmetics(cosmetics) {
+  if (cosmetics && typeof cosmetics === 'object') {
+    activeCosmetics = {
+      arrow: cosmetics.arrow || 'arrow_default',
+      board: cosmetics.board || 'board_default',
+      trail: cosmetics.trail || 'trail_default'
+    };
+  }
+}
+
+export function getRenderCosmetics() {
+  return { ...activeCosmetics };
+}
+
 
 export function invalidatePalette(newThemeKey = null) {
   if (newThemeKey && THEMES[newThemeKey]) {
@@ -98,26 +119,87 @@ function drawObstacles(ctx, geom, obstacles, palette) {
   }
 }
 
-/* ----- Grid backdrop: subtle dots at every cell intersection. ----- */
+/* ----- Grid backdrop: subtle dots or cosmetic accents at every cell intersection. ----- */
 function drawGrid(ctx, geom, palette) {
   const { left, top, cellPx, grid } = geom;
+  const boardId = activeCosmetics.board;
   const r = Math.max(0.6, cellPx * 0.05);
-  ctx.fillStyle = palette.line;
-  // Draw dots at every cell center
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      const cx = left + (x + 0.5) * cellPx;
-      const cy = top + (y + 0.5) * cellPx;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
 
-  // Subtle inset border around the playable area.
-  ctx.strokeStyle = palette.line;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
+  ctx.save();
+  if (boardId === 'board_blueprint') {
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1;
+    const arm = Math.max(2, cellPx * 0.10);
+    for (let y = 0; y < grid; y++) {
+      for (let x = 0; x < grid; x++) {
+        const cx = left + (x + 0.5) * cellPx;
+        const cy = top + (y + 0.5) * cellPx;
+        ctx.beginPath();
+        ctx.moveTo(cx - arm, cy);
+        ctx.lineTo(cx + arm, cy);
+        ctx.moveTo(cx, cy - arm);
+        ctx.lineTo(cx, cy + arm);
+        ctx.stroke();
+      }
+    }
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
+  } else if (boardId === 'board_velvet') {
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.fillStyle = '#8b5cf6';
+    for (let y = 0; y < grid; y++) {
+      for (let x = 0; x < grid; x++) {
+        const cx = left + (x + 0.5) * cellPx;
+        const cy = top + (y + 0.5) * cellPx;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
+  } else if (boardId === 'board_galaxy') {
+    ctx.fillStyle = '#ec4899';
+    const s = Math.max(1.5, cellPx * 0.08);
+    for (let y = 0; y < grid; y++) {
+      for (let x = 0; x < grid; x++) {
+        const cx = left + (x + 0.5) * cellPx;
+        const cy = top + (y + 0.5) * cellPx;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - s);
+        ctx.lineTo(cx + s * 0.4, cy);
+        ctx.lineTo(cx, cy + s);
+        ctx.lineTo(cx - s * 0.4, cy);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
+  } else {
+    ctx.fillStyle = palette.line;
+    // Draw dots at every cell center
+    for (let y = 0; y < grid; y++) {
+      for (let x = 0; x < grid; x++) {
+        const cx = left + (x + 0.5) * cellPx;
+        const cy = top + (y + 0.5) * cellPx;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // Subtle inset border around the playable area.
+    ctx.strokeStyle = palette.line;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
+  }
+  ctx.restore();
 }
 
 /* ----- Arrows: shaft from tail toward tip, then triangular head. ----- */
@@ -176,10 +258,19 @@ export function drawArrow(ctx, geom, arrow, palette, blockT = -1, wiggle = null,
 
   // Resolve base color based on key/locked/block states
   let baseColor = palette.ink;
+  let tipColor = null;
+  let tipGlow = false;
+
+  const skin = activeCosmetics.arrow && COSMETICS[activeCosmetics.arrow] ? COSMETICS[activeCosmetics.arrow].style : null;
+
   if (arrow.keyId && COLOR_KEYS[arrow.keyId]) {
     baseColor = COLOR_KEYS[arrow.keyId].color;
   } else if (isLocked) {
     baseColor = palette.inkFaint || '#94a3b8';
+  } else if (skin && skin.shaftColor) {
+    baseColor = skin.shaftColor;
+    tipColor = skin.tipColor;
+    tipGlow = !!skin.tipGlow;
   }
 
   const shaftColor = blockT >= 0
@@ -237,7 +328,16 @@ export function drawArrow(ctx, geom, arrow, palette, blockT = -1, wiggle = null,
   ctx.stroke();
 
   // Triangle head — apex out, base across the tip cell.
-  drawTipTriangle(ctx, tipCenter.x + ox, tipCenter.y + oy, dir, cellPx, shaftColor);
+  const finalTipColor = tipColor || shaftColor;
+  if (tipGlow) {
+    ctx.save();
+    ctx.shadowColor = finalTipColor;
+    ctx.shadowBlur = Math.max(4, cellPx * 0.16);
+    drawTipTriangle(ctx, tipCenter.x + ox, tipCenter.y + oy, dir, cellPx, finalTipColor);
+    ctx.restore();
+  } else {
+    drawTipTriangle(ctx, tipCenter.x + ox, tipCenter.y + oy, dir, cellPx, finalTipColor);
+  }
 
   // --- SPECIAL MECHANIC BADGES ---
   // 1. Color-Key Badge Glyph

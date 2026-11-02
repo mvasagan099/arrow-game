@@ -51,13 +51,22 @@ The overall engineering roadmap is structured into eight distinct phases:
 
 ---
 
-### Phase 4: Offline Coins & Rewards Economy
-- **Status**: Pending
+### Phase 4: Offline Coins & Rewards Economy (CURRENT)
+- **Status**: Completed
 - **Objectives**:
-  - **Local Currency (Coins)**: Earn coins on level completions, perfect clears (no hearts lost), daily challenges, and streak milestones.
-  - **Hint & Utility Shop**: Spend coins on free hints, extra hearts (+1 heart), or level skips.
-  - **Cosmetic Customization**: Unlock new arrow tip styles, shaft colorways, grid patterns, and celebratory win effects.
-  - **Tamper-Resistant Storage**: Secure localStorage serialization with checksum verification to prevent trivial client tampering while remaining 100% offline.
+  - **Offline Coin Wallet Service**: Centralized, atomic wallet (`src/economy/wallet.js`) initialized with 100 welcome coins, non-negative balance protection, lifetime earnings and spend tracking.
+  - **Level Completion & Flawless Rewards**: +10 coins once per level on first solve, +5 coins flawless bonus (no hearts lost) on first flawless clear. Robust duplicate protection preventing infinite coin farming on replays while tracking `replaysCompleted`.
+  - **7-Day Daily Login Reward Calendar**: Ascending reward cycle `[10, 15, 20, 25, 30, 40, 100]` with Day 7 milestone crown, local calendar date validation, consecutive login streak counter, and automatic streak reset on missed days.
+  - **Daily Challenge Rewards**: +30 coins awarded once per dateKey upon completing the daily challenge puzzle.
+  - **Hint Purchase Utility**: In-game hint button charges 25 coins. Strict transaction safety: validates affordability before deduction, checks if a solvable arrow exists via solver, only charges if a hint is successfully provided.
+  - **Cosmetic Customization Shop**: Offline cosmetics catalog (`src/economy/economy-config.js` and `src/economy/shop.js`) with preview cards and live equipping for:
+    - *Arrow Skins*: Classic (Free), Ocean (100 🪙), Sunset (150 🪙), Emerald (250 🪙), Golden (500 🪙) with tip glow and custom shaft colors.
+    - *Board Styles*: Minimal Grid (Free), Blueprint Board (150 🪙), Midnight Velvet (200 🪙), Galaxy Nebula (300 🪙) with custom crosshairs, micro-rings, stars, and borders.
+    - *Particle Trails*: Standard Spark (Free), Neon Cyber (200 🪙), Stardust (250 🪙), Rainbow Prism (350 🪙).
+    - *Premium Themes*: Cyberpunk Amber (300 🪙), Forest Moss (300 🪙) without paywalling the 4 original themes (Classic, Dark, Neon, Pastel).
+  - **Achievement Categorization & Rewards**: Expanded 24 achievements across 4 categories (Progression, Skill, Daily, Exploration) awarding +20 coins on unlock with category filter tabs in UI.
+  - **Audit Trail & Bounded Persistence**: FIFO transaction audit log capped at 50 entries to guarantee local storage stays well below 10KB. Backward-compatible save migration ensuring 0 progress lost.
+  - **Automated Economy Test Suite**: 20 comprehensive unit and integration tests (`test/economy.test.mjs`) covering wallet operations, duplicate prevention, streak resets, hint purchases, cosmetic purchases, and storage migration.
 
 ---
 

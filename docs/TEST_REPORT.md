@@ -10,10 +10,11 @@
 | Mobile Viewport & Sizing | `test/viewport.test.mjs` | 4 suites (32 assertions) | 4 | 0 | PASSED |
 | Phase 2 Themes & Polish | `test/phase2.test.mjs` | 7 suites (30 assertions) | 7 | 0 | PASSED |
 | Phase 3 Mechanics & Solver | `test/phase3.test.mjs` | 9 suites (45 assertions) | 9 | 0 | PASSED |
+| Phase 4 Economy & Shop | `test/economy.test.mjs` | 20 suites (55 assertions) | 20 | 0 | PASSED |
 | Full 2,000 Levels Validation | `test/validate-all-2000-levels.mjs` | 2,000 levels (6 tiers) | 2,000 | 0 | ALL 100% SOLVABLE |
-| **Total** | **Unified Runner** | **349 test points + 2,000 levels** | **2,349** | **0** | **ALL PASSED (100%)** |
+| **Total** | **Unified Runner** | **369 test points + 2,000 levels** | **2,369** | **0** | **ALL PASSED (100%)** |
 
-Execution time for the unified test runner: **6.92 seconds** on Node.js v22.12.0 LTS.
+Execution time for the unified test runner: **6.93 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **39.54 seconds**.
 
 ---
 
@@ -104,6 +105,28 @@ Results:
 6. **Tutorials & Progression**:
    - Verified all 7 required tutorial modules are fully populated.
    - Verified 2,000 level bitmask packing and save data migrations.
+
+### 2.6 Phase 4 Economy, Coins, Rewards & Shop Verification (`test/economy.test.mjs`)
+1. **Initial Wallet Balance**: Verified new player wallet starts with exactly 100 coins, `totalEarned: 100`, `totalSpent: 0`.
+2. **Normal Level Rewards**: Verified first level clear awards +10 coins and records level in `claimedLevelRewards`.
+3. **Flawless Level Clear Bonuses**: Verified first flawless solve (0 hearts lost) awards +5 coins and records in `claimedPerfectBonuses`.
+4. **Duplicate Reward Prevention**: Replaying a previously solved level awards 0 duplicate coins.
+5. **Delayed Flawless Clear**: Replaying a level and solving it flawlessly for the first time awards the +5 bonus while keeping base clear at 0.
+6. **7-Day Login Calendar**: Verified ascending cycle `[10, 15, 20, 25, 30, 40, 100]`, day tracking, and streak incrementation.
+7. **Daily Duplicate Prevention**: Verified login reward cannot be claimed twice on the same calendar day.
+8. **Streak Reset on Inactivity**: Verified that missing a day resets consecutive streak and calendar index back to Day 1.
+9. **Daily Challenge Rewards**: Completing the daily challenge awards +30 coins once per dateKey.
+10. **Hint Purchases**: Verified spending 25 coins for in-game hint reduces wallet and records transaction.
+11. **Insufficient Balance Protection**: Verified balance never drops below zero and purchases are rejected when funds are lacking.
+12. **Failed Hint Safeguard**: Zero coins deducted if no valid hint arrow exists on the grid.
+13. **Cosmetic Purchases & Ownership**: Buying arrow/board/trail/theme deducts cost, registers in `ownedCosmetics`, and auto-equips.
+14. **Duplicate Cosmetic Protection**: Re-purchasing an already owned item is strictly prevented.
+15. **Cosmetic Equipment Switching**: Verified equipping/unequipping updates `equippedCosmetics` and persists without affecting puzzle rules.
+16. **Achievement Rewards**: Verified unlocking an achievement grants +20 coins once per achievement.
+17. **Legacy Schema Migration**: Verified migrating pre-Phase 4 saves automatically initializes economy wallet with 100 coins and preserves progression.
+18. **Corrupted Save Recovery**: Defensive sanitization ensures invalid/negative numbers or missing maps reset to valid defaults.
+19. **App Restart Persistence**: Full save/load roundtrip verified in mock storage retaining balance, owned cosmetics, and transaction history.
+20. **Audit Log Bounded Retention**: Verified FIFO transaction log caps at 50 entries, preventing localStorage growth.
 
 ---
 

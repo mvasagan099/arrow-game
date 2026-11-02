@@ -4,6 +4,7 @@
    All coordinates are in CSS pixels (matching Canvas 2D render pass). */
 
 import { DIRS } from '../config.js';
+import { COSMETICS } from '../economy/economy-config.js';
 
 export const POOL_SIZE = 140;
 
@@ -50,10 +51,13 @@ function getAvailableParticle() {
 /**
  * Emit particles when an arrow extracts successfully.
  * Emits a stream of subtle particles trailing in the exit direction.
+ * Supports custom cosmetic trail palettes (e.g. Neon, Stardust, Rainbow).
  */
-export function emitExtractParticles(tipX, tipY, dirIndex, color) {
+export function emitExtractParticles(tipX, tipY, dirIndex, color, trailId = null) {
   const d = DIRS[dirIndex];
   const count = 10;
+  const customColors = trailId && COSMETICS[trailId]?.style?.colors ? COSMETICS[trailId].style.colors : null;
+
   for (let i = 0; i < count; i++) {
     const p = getAvailableParticle();
     if (!p) break;
@@ -69,8 +73,9 @@ export function emitExtractParticles(tipX, tipY, dirIndex, color) {
     const vy = d.dy * speed + (Math.random() - 0.5) * 15;
     const size = 2 + Math.random() * 2.5;
     const maxLife = 320 + Math.random() * 200;
+    const pColor = customColors ? customColors[Math.floor(Math.random() * customColors.length)] : color;
 
-    p.init(x, y, vx, vy, size, color, maxLife);
+    p.init(x, y, vx, vy, size, pColor, maxLife);
   }
 }
 

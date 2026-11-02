@@ -9,7 +9,9 @@ export const HAPTIC_PATTERNS = {
   rotate: 15,
   unlock: [20, 30],
   win: [35, 45, 35, 50, 80],
-  fail: [80, 50, 100]
+  fail: [80, 50, 100],
+  coin: 15,
+  purchase: [20, 25, 40]
 };
 
 let _enabled = true;
@@ -66,3 +68,14 @@ export function hapticWin() {
 export function hapticFail() {
   vibrate(HAPTIC_PATTERNS.fail);
 }
+
+/** Crisp chime pulse for coin collection */
+export function hapticCoin() {
+  vibrate(HAPTIC_PATTERNS.coin);
+}
+
+/** Solid rewarding pulse for shop purchases */
+export function hapticPurchase() {
+  vibrate(HAPTIC_PATTERNS.purchase);
+}
+

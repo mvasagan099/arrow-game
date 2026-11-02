@@ -17,6 +17,14 @@
       <canvas id="home-bg-canvas" class="home-bg-canvas" aria-hidden="true"></canvas>
 
       <div class="home-content">
+        <!-- Top Wallet Bar -->
+        <div class="home-top-bar">
+          <div class="coin-pill" id="home-coin-pill" role="button" aria-label="Coin wallet balance">
+            <span class="coin-icon">🪙</span>
+            <span id="home-coins">100</span>
+          </div>
+        </div>
+
         <!-- Logo Header -->
         <header class="home-header">
           <div class="logo-emblem" aria-hidden="true">
@@ -86,6 +94,30 @@
             <span>Daily</span>
           </button>
 
+          <button id="btn-home-daily-gift" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 12 20 22 4 22 4 12" />
+                <rect x="2" y="7" width="20" height="5" />
+                <line x1="12" y1="22" x2="12" y2="7" />
+                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+              </svg>
+            </div>
+            <span>Daily Gift</span>
+          </button>
+
+          <button id="btn-home-shop" class="home-nav-btn">
+            <div class="nav-btn-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <span>Shop</span>
+          </button>
+
           <button id="btn-home-achievements" class="home-nav-btn">
             <div class="nav-btn-icon">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -126,7 +158,13 @@
           <div id="level-tier" class="tier easy">Easy</div>
         </div>
 
-        <div class="hearts" id="hearts" aria-label="Hearts remaining"></div>
+        <div class="topbar-right">
+          <div class="coin-pill" id="topbar-coin-pill" role="button" aria-label="Coin wallet balance">
+            <span class="coin-icon">🪙</span>
+            <span id="topbar-coins">100</span>
+          </div>
+          <div class="hearts" id="hearts" aria-label="Hearts remaining"></div>
+        </div>
       </header>
 
       <div class="progress" aria-hidden="true">
@@ -149,7 +187,8 @@
           <span>Undo</span>
         </button>
 
-        <button id="btn-hint" class="action action-hint" aria-label="Get Hint (H)" title="Hint (H)">
+        <button id="btn-hint" class="action action-hint" aria-label="Get Hint (H)" title="Hint (25 coins)">
+          <span class="hint-cost-pill">25 🪙</span>
           <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
             <path d="M9 21h6M10 18h4M12 3a6 6 0 0 1 4 10.5c-.7.7-1 1.5-1 2.5v.5H9v-.5c0-1-.3-1.8-1-2.5A6 6 0 0 1 12 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
           </svg>
@@ -193,6 +232,15 @@
           <span class="star-icon active">★</span>
           <span class="star-icon active">★</span>
           <span class="star-icon active">★</span>
+        </div>
+
+        <!-- Coin Reward Box -->
+        <div id="vc-coins" class="victory-coin-reward">
+          <div class="vc-coin-header">
+            <span class="vc-coin-icon">🪙</span>
+            <span id="vc-coin-amount" class="vc-coin-amount">+15</span>
+          </div>
+          <div id="vc-coin-detail" class="vc-coin-detail">(+10 Clear, +5 Flawless)</div>
         </div>
 
         <!-- Badges -->
@@ -393,8 +441,60 @@
       <div class="modal-scrim" data-close></div>
       <div class="modal-content modal-wide">
         <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
-        <h2 id="achievements-title">Achievements <span id="ach-progress" class="ach-counter">(0/15)</span></h2>
+        <h2 id="achievements-title">Achievements <span id="ach-progress" class="ach-counter">(0/24)</span></h2>
+
+        <!-- Category Tabs -->
+        <div class="ach-tabs difficulty-tabs" role="tablist">
+          <button data-cat="all" class="tab active" role="tab">All</button>
+          <button data-cat="progression" class="tab" role="tab">Progression</button>
+          <button data-cat="skill" class="tab" role="tab">Skill</button>
+          <button data-cat="daily" class="tab" role="tab">Daily</button>
+          <button data-cat="exploration" class="tab" role="tab">Explore</button>
+        </div>
+
         <div id="achievements-grid" class="achievements-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: DAILY LOGIN REWARDS -->
+    <div id="modal-daily-reward" class="modal" role="dialog" aria-labelledby="daily-reward-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide daily-reward-content">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <div class="daily-reward-header">
+          <div class="daily-gift-icon">🎁</div>
+          <h2 id="daily-reward-title">Daily Rewards</h2>
+          <p class="daily-reward-sub">Check in daily for ascending rewards &amp; 7-day streak bonuses!</p>
+        </div>
+        <div class="daily-streak-badge">
+          <span>Current Streak: </span><strong id="daily-streak-count">0 days 🔥</strong>
+        </div>
+        <div id="daily-calendar-grid" class="daily-calendar-grid"></div>
+        <div class="daily-reward-footer">
+          <button id="btn-claim-daily" class="btn-primary btn-large">Claim Today's Gift 🎁</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: COSMETIC SHOP -->
+    <div id="modal-shop" class="modal" role="dialog" aria-labelledby="shop-title" aria-modal="true" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <div class="modal-content modal-wide shop-content">
+        <button class="modal-close icon-btn" aria-label="Close" data-close>&times;</button>
+        <div class="shop-header">
+          <h2 id="shop-title">Cosmetics Shop</h2>
+          <div class="coin-pill shop-coin-pill">
+            <span class="coin-icon">🪙</span>
+            <span id="shop-coins">100</span>
+          </div>
+        </div>
+        <div class="shop-tabs difficulty-tabs" role="tablist">
+          <button data-cat="arrow" class="tab active" role="tab">Arrows</button>
+          <button data-cat="board" class="tab" role="tab">Boards</button>
+          <button data-cat="trail" class="tab" role="tab">Trails</button>
+          <button data-cat="theme" class="tab" role="tab">Themes</button>
+        </div>
+        <div id="shop-items-grid" class="shop-items-grid"></div>
       </div>
     </div>
 

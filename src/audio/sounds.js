@@ -100,3 +100,20 @@ export function sfxObstacle() {
 export function sfxAchievement() {
   chord([659.25, 783.99, 987.77, 1318.51], { type: 'sine', dur: 0.10, decay: 0.22, gain: 0.30 });
 }
+
+export function sfxCoin() {
+  chord([987.77, 1318.51], { type: 'sine', dur: 0.06, decay: 0.12, gain: 0.26 });
+}
+
+export function sfxPurchase() {
+  chord([523.25, 659.25, 1046.50], { type: 'triangle', dur: 0.08, decay: 0.16, gain: 0.28 });
+}
+
+export function sfxEquip() {
+  blip({ freq: 880, type: 'triangle', dur: 0.03, decay: 0.06, gain: 0.20, slide: 120 });
+}
+
+export function sfxError() {
+  blip({ freq: 180, type: 'square', dur: 0.10, decay: 0.12, gain: 0.22, slide: -40 });
+}
+

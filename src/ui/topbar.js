@@ -51,3 +51,8 @@ export function setProgress(fraction) {
   const pct = Math.max(0, Math.min(1, fraction)) * 100;
   progressFill.style.width = `${pct.toFixed(1)}%`;
 }
+
+export function setTopbarCoins(amount) {
+  const el = document.getElementById('topbar-coins');
+  if (el) el.textContent = Math.max(0, Math.floor(Number(amount) || 0));
+}
