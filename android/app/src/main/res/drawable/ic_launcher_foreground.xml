@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Puzzle Chamber Boundary with Escape Gate at Top-Right -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#334155"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M68,32 H36 A8,8 0 0,0 28,40 V72 A8,8 0 0,0 36,80 H68 A8,8 0 0,0 76,72 V50" />
+
+    <!-- Obstacle Blocks inside Chamber -->
+    <path
+        android:fillColor="#475569"
+        android:pathData="M34,44 h6 v6 h-6 z M34,60 h6 v6 h-6 z M56,66 h6 v6 h-6 z" />
+
+    <!-- Escaping Arrow Trail (L-Shape Path from bottom-left through gate) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#6366F1"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M44,66 H48 V48 H72" />
+
+    <!-- Glowing Arrow Extraction Tip / Dynamic Triangular Chevron breaking out -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M70,39 L82,48 L70,57 L74,48 Z" />
+
+    <!-- Arrow Core Accent Dot -->
+    <path
+        android:fillColor="#F43F5E"
+        android:pathData="M44,66 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+
+    <!-- Spark particles escaping into freedom -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M84,38 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M87,54 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M78,31 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+</vector>

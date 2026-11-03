@@ -1,6 +1,6 @@
 /* Haptic feedback abstraction for Arrow Escape.
-   Uses the HTML5 Vibration API where supported (Android Chrome / WebView).
-   Designed for future seamless bridge to Capacitor Haptics plugin in Phase 6. */
+   Bridges to Capacitor Haptics plugin when running on native Android,
+   with seamless fallback to the HTML5 Vibration API in browsers and automated tests. */
 
 export const HAPTIC_PATTERNS = {
   tap: 12,
@@ -15,6 +15,14 @@ export const HAPTIC_PATTERNS = {
 };
 
 let _enabled = true;
+let _nativeHaptics = null;
+
+// Initialize native Capacitor Haptics if available on device
+if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
+  import('@capacitor/haptics').then(m => {
+    _nativeHaptics = m.Haptics;
+  }).catch(() => {});
+}
 
 export function setHapticsEnabled(enabled) {
   _enabled = !!enabled;
@@ -36,46 +44,90 @@ function vibrate(pattern) {
 
 /** Subtle tick for button taps / UI navigation */
 export function hapticTap() {
-  vibrate(HAPTIC_PATTERNS.tap);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'LIGHT' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.tap);
+  }
 }
 
 /** Satisfying pulse for successful arrow escape */
 export function hapticExtract() {
-  vibrate(HAPTIC_PATTERNS.extract);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'MEDIUM' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.extract);
+  }
 }
 
 /** Double jarring pulse for hitting a blocking arrow */
 export function hapticBlock() {
-  vibrate(HAPTIC_PATTERNS.block);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'HEAVY' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.block);
+  }
 }
 
 /** Crisp click for pivot arrow rotation */
 export function hapticRotate() {
-  vibrate(HAPTIC_PATTERNS.rotate);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'LIGHT' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.rotate);
+  }
 }
 
 /** Ascending pulse when color key unlocks locked arrows */
 export function hapticUnlock() {
-  vibrate(HAPTIC_PATTERNS.unlock);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'MEDIUM' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.unlock);
+  }
 }
 
 /** Celebratory rhythmic pattern for level solve */
 export function hapticWin() {
-  vibrate(HAPTIC_PATTERNS.win);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.notification({ type: 'SUCCESS' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.win);
+  }
 }
 
 /** Low rumble for level failure / out of hearts */
 export function hapticFail() {
-  vibrate(HAPTIC_PATTERNS.fail);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.notification({ type: 'ERROR' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.fail);
+  }
 }
 
 /** Crisp chime pulse for coin collection */
 export function hapticCoin() {
-  vibrate(HAPTIC_PATTERNS.coin);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.impact({ style: 'LIGHT' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.coin);
+  }
 }
 
 /** Solid rewarding pulse for shop purchases */
 export function hapticPurchase() {
-  vibrate(HAPTIC_PATTERNS.purchase);
+  if (!_enabled) return;
+  if (_nativeHaptics) {
+    _nativeHaptics.notification({ type: 'SUCCESS' }).catch(() => {});
+  } else {
+    vibrate(HAPTIC_PATTERNS.purchase);
+  }
 }
-

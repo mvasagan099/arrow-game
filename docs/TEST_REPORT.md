@@ -12,10 +12,11 @@
 | Phase 3 Mechanics & Solver | `test/phase3.test.mjs` | 9 suites (45 assertions) | 9 | 0 | PASSED |
 | Phase 4 Economy & Shop | `test/economy.test.mjs` | 20 suites (55 assertions) | 20 | 0 | PASSED |
 | Phase 5 AdMob & Consent | `test/ads.test.mjs` | 30 suites (65 assertions) | 30 | 0 | PASSED |
+| Phase 6 Native Android Bridge | `test/native-bridge.test.mjs` | 11 suites (28 assertions) | 11 | 0 | PASSED |
 | Full 2,000 Levels Validation | `test/validate-all-2000-levels.mjs` | 2,000 levels (6 tiers) | 2,000 | 0 | ALL 100% SOLVABLE |
-| **Total** | **Unified Runner** | **399 test points + 2,000 levels** | **2,399** | **0** | **ALL PASSED (100%)** |
+| **Total** | **Unified Runner** | **410 test points + 2,000 levels** | **2,410** | **0** | **ALL PASSED (100%)** |
 
-Execution time for the unified test runner: **7.12 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **40.96 seconds**.
+Execution time for the unified test runner: **9.84 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **40.96 seconds**.
 
 ---
 
@@ -160,6 +161,43 @@ Results:
 28. **Existing Wallet Compatibility**: Verified save data with existing coins and cosmetics loads without corruption.
 29. **Existing Progression Compatibility**: Verified high-level progression (Level 500, streaks) remains intact.
 30. **Existing Save-Data Migration**: Migrating older save files without `ads` container automatically populates default frequency state and `freeHintTokens: 0`.
+
+### 2.7 Phase 6 Native Android Bridge & System Tests (`test/native-bridge.test.mjs`)
+1. **Graceful Headless Initialization**: `initAndroidBridge()` returns `{ isNative: false }` without throwing when executed in Node.js or desktop browsers.
+2. **Priority 1 Ad Interception**: Hardware back press is ignored/deferred when a full-screen ad is active (`setFullScreenAdActive(true)`), allowing the native AdMob activity to handle dismissal.
+3. **Priority 2 Modal Dismissal**: Hardware back press invokes `closeTopModal()` when any dialog is open.
+4. **Priority 3a Active Gameplay Pause**: Hardware back press during active gameplay opens the Pause dialog when pause is closed.
+5. **Priority 3b Pause Dialog Return to Home**: Hardware back press while the pause dialog is displayed navigates cleanly back to the Home screen (`showHome()`).
+6. **Priority 4 Double Back Exit on Home**:
+   - First back press on Home screen triggers user toast: *"Press back again to exit Arrow Escape"*.
+   - Second back press within 2,000ms initiates app exit sequence.
+   - Back press after 2,000ms resets cooldown and displays toast again.
+7. **Status Bar Theme Dark Mode**: `updateStatusBarTheme()` sets style `'DARK'` and `#0f172a` for dark palettes without throwing.
+8. **Status Bar Theme Light Mode**: `updateStatusBarTheme()` sets style `'LIGHT'` and `#f8fafc` for light palettes without throwing.
+9. **Splash Screen Dismissal**: `hideSplashScreen(0)` executes without errors in non-native environments.
+10. **Haptics Enable/Disable Toggle**: `setHapticsEnabled(false)` suppresses vibration; `setHapticsEnabled(true)` re-enables it.
+11. **Haptics Graceful Headless Fallback**: All haptic routines (`hapticTap`, `hapticExtract`, `hapticBlock`, `hapticRotate`, `hapticUnlock`, `hapticWin`, `hapticFail`, `hapticCoin`, `hapticPurchase`) execute without exceptions in headless/browser environments.
+
+### 2.8 Android Build & Packaging Verification
+1. **Debug APK Build**:
+   - Command: `./gradlew assembleDebug`
+   - Output: `android/app/build/outputs/apk/debug/app-debug.apk` (8.7 MB)
+   - Status: **SUCCESS** (245 actionable tasks executed)
+   - Package Name: `com.arrowescape.puzzle`
+   - Version: `versionCode 1`, `versionName "1.0.0"`
+   - Target SDK: API 36 (Android 16)
+   - Min SDK: API 24 (Android 7.0)
+   - Launchable Activity: `com.arrowescape.puzzle.MainActivity`
+2. **Release App Bundle (AAB) Build**:
+   - Command: `./gradlew bundleRelease`
+   - Output: `android/app/build/outputs/bundle/release/app-release.aab` (6.7 MB)
+   - Status: **SUCCESS** (300 actionable tasks executed)
+3. **Launcher Icons**:
+   - Vector adaptive icon foreground (`ic_launcher_foreground.xml`) and background (`ic_launcher_background.xml`) verified within the 66dp safe zone.
+   - Raster PNG assets verified across all densities: `mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}` (`ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png`).
+4. **Android 12+ Splash Screen**:
+   - `styles.xml` configured with `Theme.SplashScreen` and navy background (`#0f172a`).
+   - Drawables present across `drawable-port-*` and `drawable-land-*` (`mdpi` to `xxxhdpi`).
 
 ---
 

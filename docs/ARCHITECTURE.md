@@ -45,6 +45,8 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
 │   │   ├── rewards.js          # Level, perfect clear, daily login streak, and challenge reward claims
 │   │   ├── shop.js             # Cosmetic item catalog, purchase validation, and equipment state
 │   │   └── transactions.js     # FIFO bounded audit trail (max 50 entries)
+│   ├── native/
+│   │   └── android-bridge.js   # Hardware back button dispatcher, splash screen, status bar & lifecycle
 │   ├── ads/
 │   │   ├── ad-config.js        # Official test IDs, regex validators, frequency rules & isAdFree()
 │   │   ├── ad-events.js        # Centralized event bus with duplicate listener prevention
@@ -96,6 +98,7 @@ Arrow Escape is a modular client-side logic puzzle application constructed with 
     ├── phase3.test.mjs         # Advanced mechanics, obstacles, color keys, pivots, solver
     ├── economy.test.mjs        # Wallet, rewards, streaks, shop, hint purchase & audit log tests
     ├── ads.test.mjs            # AdMob providers, UMP consent, frequency capping, lifecycle & offline tests
+    ├── native-bridge.test.mjs  # Android back button priority, status bar theming & native haptics tests
     ├── validate-all-2000-levels.mjs # Exhaustive 2,000 level seeds validation suite
     ├── benchmark.mjs           # Generation & solver performance benchmark
     └── run-all.mjs             # Unified automated test runner
@@ -347,3 +350,59 @@ To preserve player immersion and comply with Google Play Better Ads Standards:
 - Banners are allowed only on non-gameplay screens: Home (`'home'`), Levels (`'levels'`), Shop (`'shop'`), and Achievements (`'achievements'`).
 - Banners are immediately hidden whenever transitioning into active puzzle solving (`'game'`) or tutorials (`'tutorial'`), eliminating touch interception or board occlusion.
 - Input locking: When a full-screen interstitial or rewarded ad is displayed, `ad-fullscreen-active` is applied to `<body>` to disable game inputs underneath.
+
+---
+
+## 12. Native Android Integration Architecture
+
+### 12.1 Native Android Bridge (`src/native/android-bridge.js`)
+The bridge coordinates between Capacitor native platform plugins and web UI components:
+
+```
++-------------------------------------------------------------------------+
+|                       Native Hardware Back Button                       |
++-------------------------------------------------------------------------+
+                                     |
+                                     v
++-------------------------------------------------------------------------+
+|                     Priority 1: Full-Screen Ad Active?                  |
+|              -> Yes: Return (Native AdMob handles dismissal)            |
++-------------------------------------------------------------------------+
+                                     | No
+                                     v
++-------------------------------------------------------------------------+
+|                        Priority 2: Modal Open?                          |
+|                     -> Yes: Close topmost modal dialog                  |
++-------------------------------------------------------------------------+
+                                     | No
+                                     v
++-------------------------------------------------------------------------+
+|                      Priority 3: In Active Gameplay?                    |
+|      -> Pause Open? -> Return to Home | Pause Closed? -> Open Pause     |
++-------------------------------------------------------------------------+
+                                     | No (On Home Screen)
+                                     v
++-------------------------------------------------------------------------+
+|                   Priority 4: Double Back to Exit                       |
+|     -> Within 2,000ms? -> App.exitApp() | Else: Show Exit Toast         |
++-------------------------------------------------------------------------+
+```
+
+### 12.2 Android 12+ Splash Screen Protocol
+- Configured via `Theme.SplashScreen` in `android/app/src/main/res/values/styles.xml`.
+- Specifies `windowSplashScreenBackground` (`#0f172a`), `windowSplashScreenAnimatedIcon`, and `postSplashScreenTheme`.
+- Once web assets render on device, `hideSplashScreen(250)` calls `@capacitor/splash-screen`'s `SplashScreen.hide({ fadeOutDuration: 300 })` to deliver a seamless transition without visual flashing.
+
+### 12.3 Status Bar & Theme Matching
+- `updateStatusBarTheme(themeDef)` dynamically synchronizes the Android status bar background and icon contrast with the active game theme (`classic`, `dark`, `neon`, `pastel`):
+  - Dark themes (`dark`, `neon`): status bar background `#0f172a`, style `'DARK'` (light icons).
+  - Light themes (`classic`, `pastel`): status bar background `#f8fafc` or `#f3e8ff`, style `'LIGHT'` (dark icons).
+
+### 12.4 Native Haptic Feedback (`src/audio/haptics.js`)
+- Bridges dynamically to `@capacitor/haptics`:
+  - `hapticTap()`: `Haptics.impact({ style: 'LIGHT' })`
+  - `hapticExtract()`: `Haptics.impact({ style: 'MEDIUM' })`
+  - `hapticBlock()`: `Haptics.impact({ style: 'HEAVY' })`
+  - `hapticWin()` / `hapticPurchase()`: `Haptics.notification({ type: 'SUCCESS' })`
+  - `hapticFail()`: `Haptics.notification({ type: 'ERROR' })`
+- Gracefully falls back to HTML5 `navigator.vibrate` when running in browser or headless environments.

@@ -24,19 +24,25 @@
 
 - [x] **Zero Network Runtime Dependencies**: Verified no `fetch()`, `XMLHttpRequest`, CDN links, or external script/font imports.
 - [x] **Local File Loading**: Tested game execution via local static HTTP server and direct file bundling.
-- [ ] **Capacitor Asset Bundling (Phase 6)**: Ensure all HTML/CSS/JS are staged in Android `app/src/main/assets/public`.
+- [x] **Capacitor Asset Bundling (Phase 6)**: Staged all HTML/CSS/JS in Android `app/src/main/assets/public/` with automated `npx cap sync android`.
 - [ ] **Service Worker / Cache Storage (PWA fallback)**: Optional service worker for web distribution.
 
 ---
 
-## 3. Android Platform & Capacitor Requirements (Phase 6 Prep)
+## 3. Android Platform & Capacitor Requirements (Phase 6 Completed)
 
-- [ ] **Target Android SDK**: Android 14+ (API Level 34+ required by Google Play in 2024/2025/2026).
-- [ ] **Minimum Android SDK**: Android 7.0 (API Level 24) or Android 8.0 (API Level 26).
-- [ ] **App Permissions**: Zero intrusive permissions (`android.permission.INTERNET` only for AdMob, zero storage or location permissions).
-- [ ] **Hardware Acceleration**: `<application android:hardwareAccelerated="true">` in `AndroidManifest.xml`.
-- [ ] **Safe-Area / Immersive Mode**: Fullscreen viewport with status bar matching light/dark theme.
-- [ ] **Back Button Interception**: Hardware back closes active modal -> closes drawer -> prompts app exit.
+- [x] **Target Android SDK**: Target SDK 36 (Android 16), compile SDK 36 (exceeding Google Play requirement 34+).
+- [x] **Minimum Android SDK**: Android 7.0 (API Level 24).
+- [x] **App Permissions**: Zero intrusive permissions (`android.permission.INTERNET`, `ACCESS_NETWORK_STATE`, `VIBRATE`, `AD_ID`). Zero storage, contacts, or location permissions.
+- [x] **Hardware Acceleration**: `<application android:hardwareAccelerated="true">` in `AndroidManifest.xml`.
+- [x] **Safe-Area / Immersive Mode**: Fullscreen viewport with status bar matching light/dark theme (`@capacitor/status-bar`).
+- [x] **Back Button Interception**: Hardware back priority dispatcher (dismiss full-screen ad -> dismiss topmost modal -> open/close pause during gameplay -> double back to exit on Home).
+- [x] **Adaptive Launcher Icons**: Vector adaptive icon foreground/background within 66dp safe zone + full density PNGs (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi).
+- [x] **Android 12+ Splash Screen**: `Theme.SplashScreen` configured with navy background, animated icon, and smooth fade dismissal via `@capacitor/splash-screen`.
+- [x] **Android Binaries Generated**:
+  - Installable debug APK: `android/app/build/outputs/apk/debug/app-debug.apk` (8.7 MB)
+  - Release Android App Bundle: `android/app/build/outputs/bundle/release/app-release.aab` (6.7 MB)
+- [x] **Automated CI/CD**: GitHub Actions workflow `.github/workflows/android-build.yml` compiling APK and AAB on pushes.
 
 ---
 

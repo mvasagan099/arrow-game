@@ -84,17 +84,39 @@ The overall engineering roadmap is structured into eight distinct phases:
 
 ---
 
-### Phase 6: Capacitor Android Integration
-- **Status**: Pending
+### Phase 6: Complete Android APK Development, Native Features & Build Verification
+- **Status**: Completed
 - **Objectives**:
-  - **Capacitor Setup**: Initialize `@capacitor/core`, `@capacitor/cli`, and `@capacitor/android`.
-  - **Asset Packaging**: Bundle all HTML, CSS, JS, and SVG assets into local Android `assets/public/` directory (serving via `capacitor://localhost` with zero external requests).
-  - **Native Platform Configuration**:
-    - Hardware back button handling (closing modals -> drawer -> exit confirmation).
-    - Status bar & navigation bar immersive mode / matching theme color (`@capacitor/status-bar`).
-    - Screen orientation lock to portrait with optional tablet landscape adaptation.
-    - High-refresh rate (90Hz / 120Hz) display support enabled in Android WebView.
-  - **App Icons & Splash Screen**: Adaptive Android icons (mipmap mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi) and themed launch splash.
+  - **Environment & Android Toolchain Setup**:
+    - Configured Adoptium OpenJDK 21 LTS (`21.0.13+9`) and Android SDK (Platforms 35/36, Build-Tools 36.0.0, platform-tools, cmdline-tools).
+    - Configured `android/local.properties` and shell environment variables (`JAVA_HOME`, `ANDROID_HOME`, `PATH`).
+    - Accepted all Android SDK and preview licenses.
+  - **Native Plugin Architecture**:
+    - Installed and linked `@capacitor/app@^8.1.2`, `@capacitor/haptics@^8.0.2`, `@capacitor/status-bar@^8.0.4`, `@capacitor/splash-screen@^8.0.2` alongside `@capacitor-community/admob@^8.3.0`.
+    - Executed `npm run build` and `npx cap sync android` cleanly.
+  - **Hardware Back Button Priority Navigation**:
+    - Priority 1: Fullscreen ad dismissal (delegated to native AdMob activity).
+    - Priority 2: Dismiss top modal dialog.
+    - Priority 3: Active gameplay opens Pause dialog; pause dialog returns to Home.
+    - Priority 4: Home screen double-tap back within 2,000ms exits app with warning toast.
+  - **Android 12+ Splash Screen & Launch Sequence**:
+    - Configured `Theme.SplashScreen` with `windowSplashScreenBackground` (`#0f172a`), `windowSplashScreenAnimatedIcon`, and `postSplashScreenTheme`.
+    - Generated multi-density splash assets across `drawable-port-*` and `drawable-land-*` (`mdpi` to `xxxhdpi`).
+    - Smooth JavaScript dismissal via `SplashScreen.hide({ fadeOutDuration: 300 })`.
+  - **Adaptive Launcher Icons**:
+    - Designed original vector adaptive icon foreground (`ic_launcher_foreground.xml`) and background (`ic_launcher_background.xml`) within the 66dp safe zone.
+    - Generated multi-density PNGs for `mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}` (`ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png`).
+  - **System UI & Status Bar Theming**:
+    - Dynamically updates status bar color (`#0f172a`, `#f8fafc`, `#f3e8ff`) and icon contrast (Dark/Light) matching the active game theme.
+  - **Native Haptics**:
+    - Dynamic bridge to `@capacitor/haptics` (`Haptics.impact` and `Haptics.notification`) with fallback to `navigator.vibrate`.
+  - **Automated Gradle Builds**:
+    - Compiled installable debug APK: `android/app/build/outputs/apk/debug/app-debug.apk` (8.7 MB, Target SDK 36, Min SDK 24).
+    - Compiled release Android App Bundle: `android/app/build/outputs/bundle/release/app-release.aab` (6.7 MB).
+  - **Automated CI/CD Workflow**:
+    - Implemented `.github/workflows/android-build.yml` running tests, level validation, web build, Capacitor sync, and compiling APK/AAB artifacts.
+  - **Automated Native Test Suite**:
+    - 11 unit/integration tests in `test/native-bridge.test.mjs` verifying back button hierarchy, theme status bar sync, and haptics. Total tests: 410 / 410 passing across 9 suites.
 
 ---
 

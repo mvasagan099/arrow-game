@@ -58,6 +58,7 @@ import {
 import * as persist from './persist.js';
 import * as sfx from './audio/sounds.js';
 import * as haptics from './audio/haptics.js';
+import { initAndroidBridge, hideSplashScreen, updateStatusBarTheme } from './native/android-bridge.js';
 
 /* ----- Singletons ----- */
 const data = persist.load();
@@ -349,6 +350,33 @@ initAdService(data, d => persist.save(d)).then(() => {
   console.warn('[main] AdService init caught:', err);
 });
 
+// Initialize Native Android Bridge (Back button, lifecycle, splash screen, status bar)
+initAndroidBridge({
+  isHomeVisible: () => {
+    const el = document.getElementById('screen-home');
+    return el && el.classList.contains('active');
+  },
+  anyModalOpen: () => anyModalOpen(),
+  closeTopModal: () => closeTopModal(),
+  isPauseOpen: () => {
+    const m = document.getElementById('modal-pause');
+    return m && m.classList.contains('open');
+  },
+  openPause: () => doPause(),
+  showHome: () => {
+    showHome(data);
+    showBanner('home');
+  },
+  toast: (msg, dur) => toast(msg, dur),
+  onPauseGame: () => {
+    markDirty();
+  },
+  onResumeGame: () => {
+    markDirty();
+  }
+});
+hideSplashScreen();
+
 /* ----- Theming Engine ----- */
 function applyTheme(themeKey) {
   const theme = THEMES[themeKey] || THEMES.classic;
@@ -360,6 +388,7 @@ function applyTheme(themeKey) {
 
   invalidatePalette(theme.id);
   updateSettingsUI(data.settings);
+  updateStatusBarTheme(theme);
 }
 
 /* ----- Level Lifecycle ----- */

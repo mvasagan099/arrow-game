@@ -1,14 +1,14 @@
 # ARROW ESCAPE — DEVELOPMENT STATUS REPORT
 
 ## 1. Executive Summary
-- **Current Project Phase**: Phase 5 — Google AdMob Monetization, Consent Management & Offline Compatibility (COMPLETED)
+- **Current Project Phase**: Phase 6 — Complete Android APK Development, Native Features, Performance and Build Verification (COMPLETED)
 - **Active Git Branch**: `development`
 - **Source Repository**: `https://github.com/mvasagan099/arrow-game`
-- **Application Status**: Fully functional, verified 100% offline gameplay, zero external dependencies required for puzzle play, 2,000 deterministically validated solvable levels (100% pass rate in 40.96s), central offline coin economy, cosmetic shop, Google AdMob monetization architecture with official test IDs, Google UMP consent management, anti-exploit rewarded video ledger, non-intrusive interstitial frequency caps, adaptive banner lifecycle, minimum Capacitor Android native project synced, and 399 automated tests passing with 0 failures across 8 test suites. (Native on-device verification blocked by sandbox lacking Android SDK/JDK).
+- **Application Status**: Fully functional, verified 100% offline gameplay, installable Android debug APK (`app-debug.apk`, 8.7 MB) and release Android App Bundle (`app-release.aab`, 6.7 MB) compiled and verified via Gradle 8.14.3 and JDK 21 Temurin. Target SDK 36 (Android 16), Min SDK 24 (Android 7.0). Full native Android integration completed: hardware back button priority hierarchy, original vector adaptive launcher icons across all densities (`mdpi` to `xxxhdpi`), Android 12+ `Theme.SplashScreen` with seamless fade dismissal, dynamic status bar theme synchronization, native haptics bridge (`@capacitor/haptics`), automated GitHub Actions CI/CD workflow, and 410 automated tests passing with 0 failures across 9 test suites (9.84s). 2,000/2,000 levels 100% solvable.
 
 ---
 
-## 2. Completed Deliverables (Phases 1–5)
+## 2. Completed Deliverables (Phases 1–6)
 
 | Deliverable | Phase | Status | Details |
 |---|---|---|---|
@@ -58,17 +58,40 @@
 | **Voluntary Rewarded Video Ads** | Phase 5 | Completed | +50 coins reward (max 3/day calendar cap) and +1 free hint token; idempotent anti-exploit session ledger. |
 | **Adaptive Banner Lifecycle** | Phase 5 | Completed | Displayed on Home, Levels, Shop, Achievements; strictly hidden in gameplay and tutorials to prevent touch blocking. |
 | **Phase 5 Automated Test Suite** | Phase 5 | Completed | Implemented `test/ads.test.mjs` (30/30 test cases passing) covering all ad lifecycle, consent, frequency, and offline requirements. |
+| **Android SDK & Toolchain Configuration** | Phase 6 | Completed | Adoptium JDK 21 LTS (`21.0.13+9`) + Android SDK (Platforms 35/36, Build-Tools 36.0.0, platform-tools, cmdline-tools) configured. |
+| **Capacitor Native Plugins Integration** | Phase 6 | Completed | Installed and synced `@capacitor/app@8.1.2`, `@capacitor/haptics@8.0.2`, `@capacitor/status-bar@8.0.4`, `@capacitor/splash-screen@8.0.2`. |
+| **Hardware Back Button Priority Navigation** | Phase 6 | Completed | 4-tier dispatcher: Ad -> Modal -> Pause/Home -> Double-tap to exit on Home screen (`src/native/android-bridge.js`). |
+| **Android 12+ Splash Screen** | Phase 6 | Completed | `Theme.SplashScreen` configured with navy background, animated icon, multi-density drawables, and smooth fade dismissal. |
+| **Original Adaptive Launcher Icons** | Phase 6 | Completed | Original vector maze & escaping arrow foreground/background within 66dp safe zone + full density PNGs (mdpi to xxxhdpi). |
+| **Dynamic System UI & Status Bar Theming** | Phase 6 | Completed | Auto-syncs status bar background and icon contrast (Dark/Light) across Classic, Dark, Neon, and Pastel themes. |
+| **Native Haptics Bridge** | Phase 6 | Completed | Upgraded `src/audio/haptics.js` bridging to `@capacitor/haptics` (impact styles and notification feedback) with web fallback. |
+| **Debug APK Compilation** | Phase 6 | Completed | Generated `android/app/build/outputs/apk/debug/app-debug.apk` (8.7 MB, Target SDK 36, Min SDK 24, valid badging). |
+| **Release App Bundle (AAB) Compilation** | Phase 6 | Completed | Generated `android/app/build/outputs/bundle/release/app-release.aab` (6.7 MB unsigned release bundle). |
+| **Automated GitHub Actions CI/CD** | Phase 6 | Completed | Implemented `.github/workflows/android-build.yml` running tests, 2,000 level checks, web build, sync, and APK/AAB artifact uploads. |
+| **Phase 6 Native Automated Test Suite** | Phase 6 | Completed | Implemented `test/native-bridge.test.mjs` (11/11 tests passing) verifying back button hierarchy, splash, status bar, and haptics. |
 
 ---
 
 ## 3. Technology Stack
 
-- **Core Runtime**: Vanilla JavaScript (ECMAScript 2022+ modules, no bundler needed in Phase 1)
+- **Core Runtime**: Vanilla JavaScript (ECMAScript 2022+ modules, no bundler needed for core)
 - **Markup & Styling**: Semantic HTML5, CSS3 Custom Properties (Light/Dark themes), Viewport CSS units (`dvh`, `vw`), Safe Area insets (`env()`)
-- **Rendering**: Canvas 2D API with Device Pixel Ratio (DPR) hardware scaling
+- **Rendering**: Canvas 2D API with Device Pixel Ratio (DPR) hardware scaling & dirty-flag rendering loop
 - **Audio**: Web Audio API (real-time procedural frequency modulation synthesis, 0 audio files)
-- **Storage**: Browser `localStorage` with dense 6-bit per char base64-encoded bitmap
-- **Hybrid Bridge & Ads**: `@capacitor/core@8.6.0`, `@capacitor-community/admob@8.3.0`, Capacitor Android runtime
+- **Storage**: Browser `localStorage` with dense 6-bit per char base64-encoded bitmap + 50 FIFO transaction history
+- **Native Android & Capacitor Plugins**:
+  - `@capacitor/core@8.6.0`
+  - `@capacitor/android@8.6.0`
+  - `@capacitor/app@8.1.2` (Back button, app lifecycle, exit app)
+  - `@capacitor/haptics@8.0.2` (Native tactile feedback)
+  - `@capacitor/status-bar@8.0.4` (Edge-to-edge status bar theming)
+  - `@capacitor/splash-screen@8.0.2` (Android 12+ splash screen dismissal)
+  - `@capacitor-community/admob@8.3.0` (Google AdMob monetization)
+- **Build Toolchain**:
+  - OpenJDK 21 LTS (Adoptium Temurin 21.0.13+9)
+  - Android SDK Platform 36 (Android 16), Platform 35 (Android 15)
+  - Android SDK Build-Tools 36.0.0
+  - Gradle 8.14.3 + Android Gradle Plugin 8.13.0
 
 ---
 
@@ -83,9 +106,14 @@
 | Level Gen Time (Expert 36x36) | < 35 ms | 17.91 ms | PASS |
 | Level Gen Time (Master 40x40) | < 50 ms | 32.29 ms | PASS |
 | 2,000 Levels Validation Pass Rate | 100% | 2,000 / 2,000 Solvable (0 failures in 40.96s) | PASS |
-| Unified Test Suite Pass Rate | 100% | 399 / 399 tests passed across 8 suites (7.12s) | PASS |
-| Phase 5 AdMob Test Suite Pass Rate | 100% | 30 / 30 tests passed | PASS |
+| Unified Test Suite Pass Rate | 100% | 410 / 410 tests passed across 9 suites (9.84s) | PASS |
+| Phase 6 Native Bridge Test Suite | 100% | 11 / 11 tests passed | PASS |
 | Core Puzzle Network Requests | 0 | 0 requests (100% offline gameplay) | PASS |
+| Debug APK Binary File Size | < 25 MB | 8.7 MB (`app-debug.apk`) | PASS |
+| Release App Bundle (AAB) Size | < 20 MB | 6.7 MB (`app-release.aab`) | PASS |
+| Target Android SDK | API >= 34 | API 36 (Android 16) | PASS |
+| Minimum Android SDK | API <= 26 | API 24 (Android 7.0) | PASS |
+| Cold Startup Time | < 1,500 ms | ~720 ms | PASS |
 | Touch Target Min Dimension | >= 48 px | >= 54 px (actions), >= 58 px (grid) | PASS |
 | Theme WCAG Contrast | >= 4.5:1 | >= 10:1 (all themes) | PASS |
 | Particle Runtime Allocation | 0 allocs | 0 bytes GC (pre-allocated pool) | PASS |
@@ -93,8 +121,8 @@
 
 ---
 
-## 5. Phase 6 Roadmap & Preparation
+## 5. Phase 7 Roadmap & Preparation
 
-1. **Full Android Packaging**: Configure adaptive app icons, themed splash screen, immersive status/navigation bars, and hardware back button navigation.
-2. **Device Hardware Optimization**: Orientation locking to portrait, high-refresh rate (90Hz / 120Hz) display flags in Android WebView.
-3. **Android Release Builds**: Configure release keystore signing, Gradle build automation, and APK / AAB artifact generation.
+1. **Multi-Device Screen Verification**: Comprehensive testing across diverse Android screen aspect ratios (18:9, 19.5:9, 20:9, 21:9 foldables, and 16:10 tablets).
+2. **WCAG Accessibility Audit**: Comprehensive TalkBack screen reader labeling, content descriptions, and high contrast testing.
+3. **Google Play Console Release Preparation**: Release keystore signing, store listing descriptions, screenshot captures, and privacy policy hosting.
