@@ -73,24 +73,38 @@
 
 ---
 
-## 5. Google Play Store Submission Checklist (Phase 8 Prep)
+## 5. Google Play Store Submission Checklist (Phase 8 Preparation COMPLETED)
 
-- [ ] **App Package Name**: Unique reverse-DNS identifier (e.g., `com.arrowescape.puzzle`).
-- [ ] **Keystore Signing**:
-  - Release keystore generated (`.jks`).
-  - Google Play App Signing enabled.
-- [ ] **Store Graphics**:
-  - High-res icon (512 × 512 px, 32-bit PNG).
-  - Feature Graphic (1024 × 500 px, JPG or 24-bit PNG).
-  - Phone screenshots (minimum 4, aspect ratio 16:9 or 9:16).
-  - Tablet 7-inch & 10-inch screenshots (minimum 1 each).
-- [ ] **Store Listing Metadata**:
-  - Title (<= 30 characters).
-  - Short description (<= 80 characters).
-  - Full description (<= 4000 characters).
-- [ ] **Data Safety & Privacy**:
-  - Privacy policy URL hosted on GitHub Pages or custom domain.
-  - Data Safety declaration: No user personal data collected or shared.
+- [x] **App Package Name**: Verified as `com.arrowescape.puzzle` in AndroidManifest, build.gradle, and capacitor.config.json.
+- [x] **Keystore Signing Automation**:
+  - Generator script ready: `scripts/generate-release-keystore.sh`.
+  - Gradle signing configuration integrated in `android/app/build.gradle`.
+  - GitHub Actions release signing workflow ready: `.github/workflows/android-release.yml`.
+  - [ ] *Pending Developer Action*: Run `./scripts/generate-release-keystore.sh` and populate GitHub Secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
+- [x] **Store Graphics**:
+  - High-res icon: `docs/play-store/assets/app_icon_512.png` (512 × 512 px, 32-bit PNG) generated.
+  - Feature Graphic: `docs/play-store/assets/feature_graphic_1024x500.png` (1024 × 500 px, PNG) generated.
+  - Promo banner: `docs/play-store/assets/promo_banner_1200x630.png` (1200 × 630 px) generated.
+  - [ ] *Pending Device Capture*: Physical device / emulator screenshots via `scripts/capture-screenshots.sh`.
+- [x] **Store Listing Metadata**:
+  - Title: `Arrow Escape: Puzzle Logic` (26 chars, <= 30 chars).
+  - Short description: `Solve 2,000 offline arrow logic puzzles. Untangle paths and escape the grid!` (76 chars, <= 80 chars).
+  - Full description: Drafted in English and Tamil in `docs/play-store/STORE_LISTING.md`.
+  - Release notes: Drafted in `docs/play-store/RELEASE_NOTES.md`.
+- [x] **Data Safety & Privacy**:
+  - Privacy policy drafted in `docs/play-store/PRIVACY_POLICY.md` and static HTML `docs/play-store/privacy-policy.html`.
+  - Google Play Data Safety Assessment completed in `docs/play-store/DATA_SAFETY_ASSESSMENT.md`.
+- [x] **Content Rating & IARC**:
+  - Complete IARC questionnaire answers prepared in `docs/play-store/CONTENT_RATING_GUIDE.md` (Everyone / PEGI 3).
+- [x] **AdMob Production Preparation**:
+  - AdMob checklist and switchover procedure documented in `docs/play-store/ADMOB_PRODUCTION_CHECKLIST.md`.
+  - `app-ads.txt` template created in `docs/play-store/app-ads.txt`.
+- [x] **Release Artifact Staging**:
+  - Unsigned release AAB (6.7 MB) and release APK (7.1 MB) generated with SHA-256 checksums in `releases/version-1.0.0/`.
+- [ ] **Track Rollout (Developer Actions)**:
+  - [ ] Deploy signed AAB to Internal Testing track.
+  - [ ] Complete Closed Testing (12 testers for 14 days).
+  - [ ] Apply for and launch Production release.
 
 ---
 

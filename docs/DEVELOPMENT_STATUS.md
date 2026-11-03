@@ -1,14 +1,14 @@
 # ARROW ESCAPE — DEVELOPMENT STATUS REPORT
 
 ## 1. Executive Summary
-- **Current Project Phase**: Phase 7 — Complete Performance Optimization, Security Audit, Android Testing & Production Stabilization (COMPLETED)
+- **Current Project Phase**: Phase 8 — Complete Google Play Release Preparation, CI/CD, Signing, Store Assets & Production Readiness (COMPLETED RELEASE PREPARATION)
 - **Active Git Branch**: `development`
 - **Source Repository**: `https://github.com/mvasagan099/arrow-game`
-- **Application Status**: Fully functional, verified 100% offline gameplay, installable Android debug APK (`app-debug.apk`, 8.7 MB) compiled and verified via Gradle 8.14.3 and JDK 21 Temurin. Target SDK 36 (Android 16), Min SDK 24 (Android 7.0). Full native Android integration completed: hardware back button priority hierarchy, original vector adaptive launcher icons across all densities (`mdpi` to `xxxhdpi`), Android 12+ `Theme.SplashScreen` with seamless fade dismissal, dynamic status bar theme synchronization, native haptics bridge (`@capacitor/haptics`), automated GitHub Actions CI/CD workflow, OWASP MASVS v2.0 security hardening, batched Canvas 2D GPU rendering (1 draw call per frame), idle CPU loop suspension (0.0% idle CPU), and 460 automated tests passing with 0 failures across 14 test suites (10.79s). 2,000/2,000 levels 100% solvable in 39.26s.
+- **Application Status**: Fully functional, verified 100% offline gameplay, installable Android debug APK (`app-debug.apk`, 8.7 MB), standalone release APK (`app-release-unsigned.apk`, 7.1 MB), and release Android App Bundle (`app-release.aab`, 6.7 MB) compiled and verified via Gradle 8.14.3 and JDK 21 Temurin. Target SDK 36 (Android 16), Min SDK 24 (Android 7.0). Full production release assets completed: secure keystore signing Gradle workflow and local generator script, GitHub Actions CI and Release pipelines, original 512×512 app icon, 1024×500 feature graphic, English & Tamil store listings, privacy policy Markdown and static HTML, Google Play Data Safety declaration, Content Rating guide, AdMob production checklist, app-ads.txt template, and organized release management structure (`releases/version-1.0.0/`). 460 automated tests passing with 0 failures across 14 test suites in 10.79s; 2,000/2,000 levels 100% solvable in 39.26s. Release readiness: **READY FOR INTERNAL TESTING**.
 
 ---
 
-## 2. Completed Deliverables (Phases 1–7)
+## 2. Completed Deliverables (Phases 1–8)
 
 | Deliverable | Phase | Status | Details |
 |---|---|---|---|
@@ -76,6 +76,18 @@
 | **Global Timezone & DST Math Resilience** | Phase 7 | Completed | Implemented integer UTC day arithmetic in `getDaysDifference` immune to DST shifts and timezone variations. |
 | **Long-Duration Stability & Stress Verification** | Phase 7 | Completed | 100 level solves, 100 restarts, 100 undos, 50 theme switches with zero memory leaks (+6.2MB heap delta). |
 | **Phase 7 Automated Test Suites (5 Suites)** | Phase 7 | Completed | Implemented `economy-integrity`, `performance`, `security`, `offline`, `stability` suites (50 tests total). Total tests: 460 / 460 passing. |
+| **Gradle Release Signing Configuration** | Phase 8 | Completed | Configured `signingConfigs.release` reading environment secrets safely with no hardcoded credentials. |
+| **Release Keystore Generation Tool** | Phase 8 | Completed | Created `scripts/generate-release-keystore.sh` for one-command PKCS12 upload keystore generation. |
+| **Automated GitHub Release Workflow** | Phase 8 | Completed | Created `.github/workflows/android-release.yml` with automated secret decryption, signing, checksums, and artifact staging. |
+| **Release Binaries & Checksums Staged** | Phase 8 | Completed | Built `app-release.aab` (6.7 MB), `app-release-unsigned.apk` (7.1 MB), staged in `releases/version-1.0.0/` with SHA-256 sums. |
+| **Original Play Store Graphics** | Phase 8 | Completed | Generated 512×512 App Icon, 1024×500 Feature Graphic, and 1200×630 Promo Banner via Python PIL. |
+| **Complete Store Listing & Localization** | Phase 8 | Completed | Authored English and Tamil descriptions, short descriptions, and initial release notes (`docs/play-store/STORE_LISTING.md`). |
+| **Privacy Policy & Static HTML Hosting** | Phase 8 | Completed | Created Markdown policy and standalone `docs/play-store/privacy-policy.html` ready for GitHub Pages hosting. |
+| **Google Play Data Safety Assessment** | Phase 8 | Completed | Completed exact Play Console Data Safety questionnaire guide (`docs/play-store/DATA_SAFETY_ASSESSMENT.md`). |
+| **Content Rating & IARC Guide** | Phase 8 | Completed | Formulated complete IARC questionnaire responses for Everyone / PEGI 3 rating (`docs/play-store/CONTENT_RATING_GUIDE.md`). |
+| **AdMob Production & app-ads.txt Setup** | Phase 8 | Completed | Created `docs/play-store/ADMOB_PRODUCTION_CHECKLIST.md` and root `docs/play-store/app-ads.txt` template. |
+| **Testing Strategy (Internal & Closed)** | Phase 8 | Completed | Documented internal test track workflow and Google's 12-testers-for-14-days closed testing plan (`docs/play-store/TESTING_PLAN.md`). |
+| **End-to-End Publishing Guide** | Phase 8 | Completed | Created complete developer console deployment manual (`docs/play-store/PUBLISHING_GUIDE.md`). |
 
 ---
 
@@ -121,6 +133,8 @@
 | Heap Memory Delta (100 Levels) | < 25 MB | +6.23 MB (zero leaks) | PASS |
 | Core Puzzle Network Requests | 0 | 0 requests (100% offline gameplay) | PASS |
 | Debug APK Binary File Size | < 25 MB | 8.7 MB (`app-debug.apk`) | PASS |
+| Release APK Binary File Size | < 20 MB | 7.1 MB (`app-release-unsigned.apk`) | PASS |
+| Release App Bundle (AAB) Size | < 15 MB | 6.7 MB (`app-release.aab`) | PASS |
 | Target Android SDK | API >= 34 | API 36 (Android 16) | PASS |
 | Minimum Android SDK | API <= 26 | API 24 (Android 7.0) | PASS |
 | Cold Startup Time | < 1,500 ms | ~720 ms | PASS |
@@ -131,9 +145,10 @@
 
 ---
 
-## 5. Phase 8 Roadmap & Preparation (CI/CD & Store Release)
+## 5. Next Steps — Google Play Internal Testing & Store Publishing
 
-1. **Automated CI/CD Pipeline**: GitHub Actions workflows to build, sign, and publish APK and AAB artifacts on push to `main`.
-2. **Keystore Signing Configuration**: Configure production signing key with Play App Signing secrets.
-3. **Store Listing Assets**: Finalize screenshots across 7-inch and 10-inch tablets and mobile form factors.
-4. **Google Play Console Submission**: Setup internal testing track and privacy policy hosting.
+1. **Owner Release Signing**: Generate upload keystore via `./scripts/generate-release-keystore.sh` and populate GitHub Actions secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
+2. **GitHub Release Build**: Trigger `.github/workflows/android-release.yml` to compile and sign the release AAB.
+3. **Upload to Internal Testing**: Upload signed `app-release.aab` to Google Play Console Internal testing track.
+4. **Closed Testing Track**: Run 12-testers for 14-days engagement milestone.
+5. **Production Access**: Apply for and launch staged rollout to Production.

@@ -45,7 +45,7 @@ jobs:
       - name: Install Node Dependencies
         run: npm ci
 
-      - name: Execute Automated Test Suites (410 tests)
+      - name: Execute Automated Test Suites (460 tests across 14 suites)
         run: npm test
 
       - name: Validate 2,000 Deterministic Levels

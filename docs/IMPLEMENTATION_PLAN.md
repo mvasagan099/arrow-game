@@ -135,11 +135,18 @@ The overall engineering roadmap is structured into eight distinct phases:
 
 ---
 
-### Phase 8: GitHub Actions CI/CD & Play Store Release
-- **Status**: Pending
-- **Objectives**:
-  - **Automated CI Workflow**: GitHub Actions pipeline running linting, test suite, and bundle verification on every pull request.
-  - **Automated CD Build**: GitHub Actions workflow generating release Android App Bundles (`.aab`) and debug APKs (`.apk`) using Gradle and Java 17/21.
-  - **Keystore Signing**: Secure Google Play App Signing via GitHub Secrets.
-  - **Store Listing Preparation**: Screenshots for phones and 10-inch tablets, feature graphic (1024x500), app description, privacy policy, and Google Play Data Safety declaration.
-  - **Production Release**: Track rollout (Internal testing -> Closed testing -> Open testing -> Production).
+### Phase 8: GitHub Actions CI/CD & Play Store Release Preparation
+- **Status**: Completed Release Preparation (Ready for Internal Testing Track)
+- **Completed Objectives**:
+  - **Release Gradle Configuration**: Configured `signingConfigs.release` reading environment secrets (`RELEASE_KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) without exposing credentials.
+  - **Production Binaries Generated**: Compiled `android/app/build/outputs/apk/release/app-release-unsigned.apk` (7.1 MB) and `android/app/build/outputs/bundle/release/app-release.aab` (6.7 MB), validated with AAPT badging.
+  - **Automated CI/CD Workflows**:
+    - `.github/workflows/android-build.yml`: Automated CI on pushes and PRs running 460 tests, 2,000 level checks, web build, Capacitor sync, and debug APK assembly.
+    - `.github/workflows/android-release.yml`: Release signing workflow decoding secrets, building signed AAB/APK, generating SHA-256 checksums, and staging release artifacts.
+  - **Keystore Generator Tool**: Created `scripts/generate-release-keystore.sh` for one-command PKCS12 upload keystore generation.
+  - **Original Store Graphics**: Rendered 512×512 app icon (`docs/play-store/assets/app_icon_512.png`), 1024×500 feature graphic (`docs/play-store/assets/feature_graphic_1024x500.png`), and promo banner (`docs/play-store/assets/promo_banner_1200x630.png`).
+  - **Complete Store Listing**: Authored English and Tamil descriptions, short descriptions, and initial release notes (`docs/play-store/STORE_LISTING.md` & `RELEASE_NOTES.md`).
+  - **Privacy Policy & Data Safety**: Authored Markdown and static HTML privacy policy (`docs/play-store/privacy-policy.html`) and completed Google Play Data Safety declaration (`docs/play-store/DATA_SAFETY_ASSESSMENT.md`).
+  - **AdMob Production Readiness**: Created `docs/play-store/ADMOB_PRODUCTION_CHECKLIST.md` and `docs/play-store/app-ads.txt` template.
+  - **Testing Strategy**: Prepared internal testing and closed testing (12 testers for 14 days) roadmaps (`docs/play-store/TESTING_PLAN.md`).
+  - **Publishing Guide**: Comprehensive manual developer console guide (`docs/play-store/PUBLISHING_GUIDE.md`).

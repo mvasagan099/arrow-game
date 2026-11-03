@@ -25,6 +25,16 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
+# Keystores & Signing Secrets
+*.jks
+*.keystore
+*.p8
+*.p12
+
+# Release Binary Artifacts (Keep large binaries out of git; use GitHub Releases / Actions artifacts)
+releases/**/*.apk
+releases/**/*.aab
+
 # Local env
 .env
 .env.local

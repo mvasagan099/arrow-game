@@ -102,10 +102,18 @@ To compile an optimized release bundle for Google Play Console submission:
 - **Typical Size**: ~6.7 MB (uncompressed web assets + native dex)
 - **Format**: Android App Bundle format (optimized per-device APK generation by Google Play)
 
-### 3.3 Clean Builds
+### 3.3 Build Release APK
+To compile a standalone release APK:
+```bash
+./gradlew assembleRelease
+```
+- **Output File**: `android/app/build/outputs/apk/release/app-release-unsigned.apk` (or `app-release.apk` if signing is configured)
+- **Typical Size**: ~7.1 MB
+
+### 3.4 Clean Builds
 If build artifacts become stale or plugins change:
 ```bash
-./gradlew clean assembleDebug
+./gradlew clean assembleDebug bundleRelease
 ```
 
 ---
@@ -115,25 +123,29 @@ If build artifacts become stale or plugins change:
 For production distribution on Google Play Store, the release bundle or APK must be cryptographically signed with a production release keystore.
 
 ### 4.1 Generate a Production Keystore
-Generate a 2048-bit RSA key pair:
+Use the automated release keystore generation script:
+```bash
+./scripts/generate-release-keystore.sh
+```
+Or execute manual PKCS12 generation:
 ```bash
 keytool -genkeypair -v \
-  -keystore arrow-escape-release.jks \
-  -alias arrow-escape \
+  -keystore arrow-escape-upload.jks \
+  -alias arrow-escape-upload \
   -keyalg RSA \
   -keysize 2048 \
   -validity 10000 \
-  -storetype JKS
+  -storetype PKCS12
 ```
-*Keep this keystore file and its password strictly secure and backed up.*
+*Keep this keystore file and its password strictly secure and backed up. Never commit `.jks` files to Git.*
 
-### 4.2 Configure Gradle Release Signing (Optional)
+### 4.2 Configure Gradle Release Signing via Environment Variables
 To automatically sign release builds via Gradle, configure environment variables:
 ```bash
-export RELEASE_KEYSTORE_PATH="/path/to/arrow-escape-release.jks"
-export RELEASE_KEYSTORE_PASSWORD="your-keystore-password"
-export RELEASE_KEY_ALIAS="arrow-escape"
-export RELEASE_KEY_PASSWORD="your-key-password"
+export RELEASE_KEYSTORE_PATH="/path/to/arrow-escape-upload.jks"
+export KEYSTORE_PASSWORD="your-keystore-password"
+export KEY_ALIAS="arrow-escape-upload"
+export KEY_PASSWORD="your-key-password"
 ```
 
 In `android/app/build.gradle`:
@@ -142,48 +154,55 @@ android {
     ...
     signingConfigs {
         release {
-            if (System.getenv("RELEASE_KEYSTORE_PATH")) {
-                storeFile file(System.getenv("RELEASE_KEYSTORE_PATH"))
-                storePassword System.getenv("RELEASE_KEYSTORE_PASSWORD")
-                keyAlias System.getenv("RELEASE_KEY_ALIAS")
-                keyPassword System.getenv("RELEASE_KEY_PASSWORD")
+            def keystorePath = System.getenv("RELEASE_KEYSTORE_PATH") ?: System.getenv("KEYSTORE_FILE")
+            if (keystorePath && file(keystorePath).exists()) {
+                storeFile file(keystorePath)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
             }
         }
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            def keystorePath = System.getenv("RELEASE_KEYSTORE_PATH") ?: System.getenv("KEYSTORE_FILE")
+            if (keystorePath && file(keystorePath).exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
 ```
 
-### 4.3 Manual Signing via `jarsigner` / `apksigner`
-Alternatively, sign the unsigned bundle or APK post-build:
+### 4.3 Manual Signing via `jarsigner`
+Alternatively, sign the unsigned bundle post-build:
 ```bash
 jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-  -keystore arrow-escape-release.jks \
-  app/build/outputs/bundle/release/app-release.aab arrow-escape
+  -keystore arrow-escape-upload.jks \
+  app/build/outputs/bundle/release/app-release.aab arrow-escape-upload
 ```
 
 ---
 
-## 5. Automated CI/CD Pipeline
+## 5. Automated CI/CD Pipelines
 
-Arrow Escape includes a complete GitHub Actions CI/CD workflow defined in `.github/workflows/android-build.yml`.
+Arrow Escape includes two GitHub Actions workflows:
 
-The workflow automatically:
-1. Checks out the repository.
-2. Configures Node.js 22 LTS and JDK 21 Temurin.
-3. Configures Android SDK Platform 36 and Build-Tools 36.0.0.
-4. Installs npm dependencies via `npm ci`.
-5. Runs all 410 unit/integration tests across 9 test suites (`npm test`).
-6. Verifies all 2,000 deterministic puzzle levels (`node test/validate-all-2000-levels.mjs`).
-7. Builds web application (`npm run build`) and synchronizes Capacitor (`npx cap sync android`).
-8. Compiles `app-debug.apk` and `app-release.aab`.
-9. Uploads both binaries as downloadable GitHub Actions artifacts.
+1. **Continuous Integration (`.github/workflows/android-build.yml`)**:
+   Runs on all pushes and PRs to `main` and `development`.
+   - Runs npm ci & all 460 automated tests across 14 suites.
+   - Validates all 2,000 deterministic puzzle levels.
+   - Builds web application and synchronizes Capacitor.
+   - Compiles debug APK and uploads downloadable artifact.
+
+2. **Automated Release (`.github/workflows/android-release.yml`)**:
+   Triggered manually via `workflow_dispatch` or on release tag pushes (`v*`).
+   - Retrieves encrypted secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
+   - Compiles signed release APK and AAB bundle.
+   - Generates SHA-256 checksums and step summary.
+   - Uploads production-ready signed artifacts.
 
 ---
 

@@ -414,3 +414,42 @@ The bridge coordinates between Capacitor native platform plugins and web UI comp
   - `hapticWin()` / `hapticPurchase()`: `Haptics.notification({ type: 'SUCCESS' })`
   - `hapticFail()`: `Haptics.notification({ type: 'ERROR' })`
 - Gracefully falls back to HTML5 `navigator.vibrate` when running in browser or headless environments.
+
+---
+
+## 13. Release Signing & CI/CD Pipeline Architecture (Phase 8)
+
+### 13.1 Decoupled Gradle Release Signing Architecture
+Release signing credentials are never checked into version control or hardcoded in configuration files:
+```
++-------------------------------------------------------------+
+|               Environment / GitHub Actions Secrets          |
+|  - RELEASE_KEYSTORE_PATH / RELEASE_KEYSTORE_BASE64          |
+|  - KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD             |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|           android/app/build.gradle (signingConfigs)         |
+|  - Checks if RELEASE_KEYSTORE_PATH exists on disk           |
+|  - Applies signingConfig signingConfigs.release if present  |
+|  - Falls back to unsigned build if missing (no crash)       |
++-------------------------------------------------------------+
+                               |
+                               v
++-------------------------------------------------------------+
+|                       Build Artifacts                       |
+|  - Debug APK: android/app/build/outputs/apk/debug/          |
+|  - Release APK: android/app/build/outputs/apk/release/      |
+|  - Release AAB: android/app/build/outputs/bundle/release/   |
++-------------------------------------------------------------+
+```
+
+### 13.2 Dual GitHub Actions Pipelines
+1. **Continuous Integration (`.github/workflows/android-build.yml`)**:
+   - Triggers on push and pull request.
+   - Executes 460 tests across 14 test suites and validates 2,000 deterministic puzzle levels.
+   - Assembles debug APK and verifies build integrity.
+2. **Automated Release (`.github/workflows/android-release.yml`)**:
+   - Triggers on workflow_dispatch or `v*` release tags.
+   - Decodes temporary upload keystore, signs release AAB and APK, validates cryptographic signature (`jarsigner -verify`), computes SHA-256 hashes, securely scrubs temporary keystore files, and uploads release artifacts.

@@ -131,3 +131,18 @@ Arrow Escape is strictly offline-first. When no network is detected:
 2. Core puzzle generation, level solving, coin earning, and cosmetic equipping proceed with zero delays or stutters.
 3. Rewarded ad buttons display helpful offline indicators ("Ad unavailable right now (Offline Mode)").
 4. Zero unhandled promise rejections, zero network retry polling loops, zero battery drain.
+
+---
+
+## 8. app-ads.txt Specification & Crawler Verification
+
+To prevent advertising fraud and unauthorized inventory spoofing, Google AdMob enforces `app-ads.txt` verification:
+1. Ensure your public developer website is reachable over HTTPS (e.g., `https://yourdomain.com`).
+2. Place `app-ads.txt` at the root of the domain:
+   ```
+   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+   ```
+   *(Replace `pub-XXXXXXXXXXXXXXXX` with your verified AdMob publisher ID from AdMob Console > Settings > Account information).*
+3. Verify public accessibility: `curl -I https://yourdomain.com/app-ads.txt` (must return HTTP 200).
+4. In Google Play Console under **Store settings > Store listing contact details**, set **Website** to `https://yourdomain.com`.
+5. AdMob crawlers scan the website within 24–48 hours, upgrading the app's inventory authorization to **Authorized**.

@@ -1,0 +1,4 @@
+# Google AdMob app-ads.txt for Arrow Escape
+# Documentation: https://support.google.com/admob/answer/9363762
+# Replace pub-XXXXXXXXXXXXXXXX with your actual AdMob Publisher ID:
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
