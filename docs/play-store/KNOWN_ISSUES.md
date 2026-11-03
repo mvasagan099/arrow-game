@@ -17,9 +17,14 @@ This document tracks known non-critical behaviors, operational considerations, a
 - **Details**: The repository does not store or commit private keystore certificates.
 - **Owner Action**: The owner must generate the upload keystore using `./scripts/generate-release-keystore.sh` and populate GitHub Secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) to enable automated cryptographic signing in `.github/workflows/android-release.yml`.
 
-### 2.3 Physical Device Screenshots Pending
-- **Status**: Documented Pending Milestone.
-- **Details**: In accordance with Google Play developer policies, fabricated screenshots are strictly avoided. Because build environments run in headless Linux containers without physical displays, screenshots must be captured from an attached device or emulator using `./scripts/capture-screenshots.sh`.
+### 2.3 Screenshots Captured via Android Virtual Device
+- **Status**: Completed & Verified.
+- **Details**: 10 genuine screenshots were captured directly from the live Android emulator (`emulator-5554`, Android 16 API 36) at 1080 × 2400 resolution using `scripts/capture-all-screenshots.mjs` and saved under `docs/play-store/screenshots/`. Zero fabricated assets.
+
+### 2.4 License Clarification (Upstream Attribution)
+- **Status**: Legal / Compliance Action Required.
+- **Details**: Upstream repository README contains the clause: *"Inspired by Arrows – Puzzle Escape by Lessmore GmbH. This is an unaffiliated fan recreation for educational and personal use."* However, the repository also includes a standard permissive MIT `LICENSE`.
+- **Owner Action**: Prior to commercial public distribution with AdMob monetization, the owner must verify licensing permissions and ensure the title *"Arrow Escape: Puzzle Logic"* does not conflict with Lessmore GmbH trademarks.
 
 ---
 

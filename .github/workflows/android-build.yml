@@ -81,10 +81,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload Release AAB Artifact
+      - name: Upload Unsigned Release AAB Artifact (Development Build)
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
+          name: app-release-aab-unsigned
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: warn
           retention-days: 14

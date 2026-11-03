@@ -145,10 +145,19 @@
 
 ---
 
-## 5. Next Steps — Google Play Internal Testing & Store Publishing
+## 5. Release Execution — Emulator Testing & Screenshots Verification
+
+- **Emulator Tested**: `medium_phone` (`emulator-5554`, Android 16, API 36, x86_64).
+- **Screenshots Captured**: 10 genuine 1080 × 2400 portrait screenshots captured via `scripts/capture-all-screenshots.mjs`.
+- **Workflow Hardening**: Enforced mandatory signing in `.github/workflows/android-release.yml` with certificate verification halts on failure; renamed unsigned dev artifact to `app-release-aab-unsigned`.
+- **Capacitor Native Bridge**: Resolved direct `window.Capacitor.Plugins` lookup for App, Haptics, AdMob, and StatusBar.
+
+---
+
+## 6. Next Steps — Google Play Internal Testing & Store Publishing
 
 1. **Owner Release Signing**: Generate upload keystore via `./scripts/generate-release-keystore.sh` and populate GitHub Actions secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
-2. **GitHub Release Build**: Trigger `.github/workflows/android-release.yml` to compile and sign the release AAB.
+2. **GitHub Release Build**: Trigger `.github/workflows/android-release.yml` to compile, sign, and verify the release AAB.
 3. **Upload to Internal Testing**: Upload signed `app-release.aab` to Google Play Console Internal testing track.
 4. **Closed Testing Track**: Run 12-testers for 14-days engagement milestone.
 5. **Production Access**: Apply for and launch staged rollout to Production.

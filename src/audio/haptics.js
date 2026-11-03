@@ -19,9 +19,12 @@ let _nativeHaptics = null;
 
 // Initialize native Capacitor Haptics if available on device
 if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
-  import('@capacitor/haptics').then(m => {
-    _nativeHaptics = m.Haptics;
-  }).catch(() => {});
+  _nativeHaptics = window.Capacitor?.Plugins?.Haptics || null;
+  if (!_nativeHaptics) {
+    import('@capacitor/haptics').then(m => {
+      _nativeHaptics = m.Haptics;
+    }).catch(() => {});
+  }
 }
 
 export function setHapticsEnabled(enabled) {

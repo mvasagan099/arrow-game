@@ -67,59 +67,68 @@ jobs:
       - name: Grant Execute Permissions to Gradle Wrapper
         run: chmod +x android/gradlew
 
-      - name: Check Keystore Secrets Availability
-        id: check-secrets
+      - name: Validate Release Signing Secrets
         run: |
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] && [ -n "${{ secrets.KEYSTORE_PASSWORD }}" ] && [ -n "${{ secrets.KEY_ALIAS }}" ]; then
-            echo "has_signing_keys=true" >> $GITHUB_OUTPUT
-            echo "Release signing credentials detected."
-          else
-            echo "has_signing_keys=false" >> $GITHUB_OUTPUT
-            echo "WARNING: Release signing credentials missing. Building unsigned artifacts."
+          if [ -z "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] || [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
+            echo "::error::CRITICAL RELEASE BLOCKER: Release signing credentials (RELEASE_KEYSTORE_BASE64, KEYSTORE_PASSWORD) are not configured in GitHub Secrets."
+            echo "A Play Store release artifact must be cryptographically signed. Exiting with failure."
+            exit 1
           fi
+          echo "Release signing credentials detected and validated."
 
       - name: Prepare Signing Keystore
-        if: steps.check-secrets.outputs.has_signing_keys == 'true'
         run: |
-          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > /tmp/release-upload.jks
-          chmod 600 /tmp/release-upload.jks
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > /tmp/arrow-escape-upload.jks
+          chmod 600 /tmp/arrow-escape-upload.jks
 
-      - name: Compile Release APK & App Bundle (Signed)
-        if: steps.check-secrets.outputs.has_signing_keys == 'true'
+      - name: Compile Signed Release APK & App Bundle
         env:
-          RELEASE_KEYSTORE_PATH: /tmp/release-upload.jks
+          RELEASE_KEYSTORE_PATH: /tmp/arrow-escape-upload.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'arrow-escape-upload' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.KEYSTORE_PASSWORD }}
         run: |
           cd android
           ./gradlew clean assembleRelease bundleRelease --stacktrace
 
-      - name: Compile Release APK & App Bundle (Unsigned Fallback)
-        if: steps.check-secrets.outputs.has_signing_keys != 'true'
-        run: |
-          cd android
-          ./gradlew clean assembleRelease bundleRelease --stacktrace
-
-      - name: Verify Signing Signature
+      - name: Verify Signed Artifacts (AAB & APK)
         id: verify-signature
         run: |
           AAB_PATH="android/app/build/outputs/bundle/release/app-release.aab"
-          if [ -f "$AAB_PATH" ]; then
-            echo "Verifying AAB signing certificate..."
-            if jarsigner -verify "$AAB_PATH" | grep -q "jar verified"; then
-              echo "AAB is cryptographically signed."
-              echo "signed_status=SIGNED" >> $GITHUB_OUTPUT
-            else
-              echo "AAB is UNSIGNED."
-              echo "signed_status=UNSIGNED" >> $GITHUB_OUTPUT
+          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+
+          if [ ! -f "$AAB_PATH" ]; then
+            echo "::error::Release App Bundle ($AAB_PATH) was not generated."
+            exit 1
+          fi
+
+          echo "=== 1. VERIFYING APP BUNDLE (AAB) SIGNATURE ==="
+          if ! jarsigner -verify -verbose -certs "$AAB_PATH" | grep -q "jar verified"; then
+            echo "::error::AAB verification failed: App Bundle is not signed or signature is corrupted!"
+            exit 1
+          fi
+          echo "✓ AAB is verified and cryptographically signed."
+          echo "signed_status=SIGNED" >> $GITHUB_OUTPUT
+
+          echo "=== 2. CERTIFICATE FINGERPRINT (AAB) ==="
+          keytool -printcert -jarfile "$AAB_PATH"
+
+          if [ -f "$APK_PATH" ]; then
+            echo "=== 3. VERIFYING RELEASE APK SIGNATURE ==="
+            APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+            if [ -x "$APKSIGNER" ]; then
+              if ! "$APKSIGNER" verify --verbose --print-certs "$APK_PATH"; then
+                echo "::error::APK verification failed: APK signature is invalid!"
+                exit 1
+              fi
+              echo "✓ Release APK signature verified."
             fi
           fi
 
       - name: Cleanup Temporary Keystore
         if: always()
         run: |
-          rm -f /tmp/release-upload.jks
+          rm -f /tmp/arrow-escape-upload.jks
 
       - name: Generate SHA-256 Checksums
         run: |
@@ -136,18 +145,18 @@ jobs:
           cp -f android/app/build/outputs/bundle/release/*.aab release-artifacts/bundle/ 2>/dev/null || true
           cp -f android/app/build/outputs/apk/release/*.apk release-artifacts/apk/ 2>/dev/null || true
 
-      - name: Upload Release App Bundle (AAB)
+      - name: Upload Signed Release App Bundle (AAB)
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-bundle
+          name: app-release-bundle-signed
           path: release-artifacts/bundle/
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload Release APK
+      - name: Upload Signed Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
+          name: app-release-apk-signed
           path: release-artifacts/apk/
           if-no-files-found: warn
           retention-days: 30

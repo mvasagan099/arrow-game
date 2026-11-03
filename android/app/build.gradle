@@ -25,7 +25,7 @@ android {
             if (keystorePath && file(keystorePath).exists()) {
                 storeFile file(keystorePath)
                 storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
+                keyAlias System.getenv("KEY_ALIAS") ?: "arrow-escape-upload"
                 keyPassword System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
             }
         }

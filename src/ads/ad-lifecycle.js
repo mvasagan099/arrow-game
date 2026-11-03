@@ -25,15 +25,26 @@ export function initAdLifecycle({ onHideBanner, onShowBanner, onPauseGame, onRes
 
   // 2. Native Capacitor app state listeners if available
   if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
-    import('@capacitor/app').then(({ App }) => {
+    const App = window.Capacitor?.Plugins?.App;
+    if (App) {
       App.addListener('appStateChange', state => {
         if (!state.isActive) {
           onPauseGame?.();
         } else {
           onResumeGame?.();
         }
+      }).catch?.(() => {});
+    } else {
+      import('@capacitor/app').then(({ App: a }) => {
+        a.addListener('appStateChange', state => {
+          if (!state.isActive) {
+            onPauseGame?.();
+          } else {
+            onResumeGame?.();
+          }
+        }).catch?.(() => {});
       }).catch(() => {});
-    }).catch(() => {});
+    }
   }
 }
 

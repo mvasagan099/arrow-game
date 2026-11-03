@@ -81,11 +81,22 @@
   - Gradle signing configuration integrated in `android/app/build.gradle`.
   - GitHub Actions release signing workflow ready: `.github/workflows/android-release.yml`.
   - [ ] *Pending Developer Action*: Run `./scripts/generate-release-keystore.sh` and populate GitHub Secrets (`RELEASE_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`).
-- [x] **Store Graphics**:
-  - High-res icon: `docs/play-store/assets/app_icon_512.png` (512 × 512 px, 32-bit PNG) generated.
-  - Feature Graphic: `docs/play-store/assets/feature_graphic_1024x500.png` (1024 × 500 px, PNG) generated.
-  - Promo banner: `docs/play-store/assets/promo_banner_1200x630.png` (1200 × 630 px) generated.
-  - [ ] *Pending Device Capture*: Physical device / emulator screenshots via `scripts/capture-screenshots.sh`.
+- [x] **Store Graphics & Genuine Screenshots**:
+  - High-res icon: `docs/play-store/assets/app_icon_512.png` (512 × 512 px, 32-bit PNG) validated.
+  - Feature Graphic: `docs/play-store/assets/feature_graphic_1024x500.png` (1024 × 500 px, PNG) validated.
+  - Promo banner: `docs/play-store/assets/promo_banner_1200x630.png` (1200 × 630 px) validated.
+  - [x] **10 Genuine Screenshots Captured via Android Emulator**:
+    - `01_home_screen.png` (1080 × 2400)
+    - `02_beginner_gameplay.png` (1080 × 2400)
+    - `03_advanced_puzzle.png` (1080 × 2400)
+    - `04_obstacles_and_locks.png` (1080 × 2400)
+    - `05_rotating_pivots.png` (1080 × 2400)
+    - `06_level_complete.png` (1080 × 2400)
+    - `07_level_selection.png` (1080 × 2400)
+    - `08_daily_challenge.png` (1080 × 2400)
+    - `09_cosmetic_shop.png` (1080 × 2400)
+    - `10_achievements_themes.png` (1080 × 2400)
+  - Script available: `scripts/capture-all-screenshots.mjs` and `scripts/capture-screenshots.sh`.
 - [x] **Store Listing Metadata**:
   - Title: `Arrow Escape: Puzzle Logic` (26 chars, <= 30 chars).
   - Short description: `Solve 2,000 offline arrow logic puzzles. Untangle paths and escape the grid!` (76 chars, <= 80 chars).

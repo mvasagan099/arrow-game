@@ -37,16 +37,23 @@ export async function initAndroidBridge(handlers = {}) {
   }
 
   try {
-    // 1. Dynamic import of Capacitor plugins
-    const [appMod, statusMod, splashMod] = await Promise.allSettled([
-      import('@capacitor/app'),
-      import('@capacitor/status-bar'),
-      import('@capacitor/splash-screen')
-    ]);
+    // 1. Resolve Capacitor plugins (direct global bridge or fallback to dynamic import)
+    const plugins = window.Capacitor?.Plugins || {};
+    _appPlugin = plugins.App || null;
+    _statusBarPlugin = plugins.StatusBar || null;
+    _splashScreenPlugin = plugins.SplashScreen || null;
 
-    if (appMod.status === 'fulfilled') _appPlugin = appMod.value.App;
-    if (statusMod.status === 'fulfilled') _statusBarPlugin = statusMod.value.StatusBar;
-    if (splashMod.status === 'fulfilled') _splashScreenPlugin = splashMod.value.SplashScreen;
+    if (!_appPlugin || !_statusBarPlugin || !_splashScreenPlugin) {
+      const [appMod, statusMod, splashMod] = await Promise.allSettled([
+        import('@capacitor/app'),
+        import('@capacitor/status-bar'),
+        import('@capacitor/splash-screen')
+      ]);
+
+      if (!_appPlugin && appMod.status === 'fulfilled') _appPlugin = appMod.value.App;
+      if (!_statusBarPlugin && statusMod.status === 'fulfilled') _statusBarPlugin = statusMod.value.StatusBar;
+      if (!_splashScreenPlugin && splashMod.status === 'fulfilled') _splashScreenPlugin = splashMod.value.SplashScreen;
+    }
 
     // 2. Hardware Back Button Listener with priority dispatch
     if (_appPlugin) {

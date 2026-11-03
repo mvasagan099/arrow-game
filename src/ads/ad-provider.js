@@ -27,8 +27,11 @@ export class NativeAdMobProvider {
     emitAdEvent(AD_EVENTS.STATE_CHANGE, { state: this.state });
 
     try {
-      const { AdMob } = await import('@capacitor-community/admob');
-      this.admob = AdMob;
+      this.admob = window.Capacitor?.Plugins?.AdMob || null;
+      if (!this.admob) {
+        const { AdMob } = await import('@capacitor-community/admob');
+        this.admob = AdMob;
+      }
 
       await this.admob.initialize({
         initializeForTesting: !!this.config.isTesting
