@@ -8,8 +8,9 @@ The evaluation is based on official Google Mobile Ads SDK data disclosure specif
 
 ### Primary Declarations:
 - **Core App**: Collects **0 personal data** (no user accounts, no contact info, no financial data, no media, no location collected by app code).
-- **Third-Party SDK (Google AdMob)**: Collects and shares device identifiers and diagnostic telemetry when the device has an active internet connection.
-- **Data Encryption in Transit**: **Yes** (All network communications use TLS 1.3).
+- **Third-Party SDK (Google AdMob)**: Collects and shares device identifiers, coarse location from IP, app activity (ad interactions), and diagnostic telemetry when the device has an active internet connection.
+- **Data Encryption in Transit**: **Yes** (All network communications initiated by Google Mobile Ads SDK use standard HTTPS encryption in transit).
+- **User Accounts**: **No** (The app does not support or require user account creation).
 - **User Data Deletion Request**: **Yes** (Players can reset all local data in Settings; users can reset/delete Advertising ID in Android Settings).
 
 ---
@@ -18,18 +19,19 @@ The evaluation is based on official Google Mobile Ads SDK data disclosure specif
 
 ### Section 1: Data Collection and Security Overview
 
-| Play Console Question | Response | Technical Details & Justification |
-|---|---|---|
-| **Does your app collect or share any of the required user data types?** | **Yes** | Yes, via the Google Mobile Ads SDK (AdMob) when connected to the internet. The app's own code does not collect data. |
-| **Is all of the user data collected by your app encrypted in transit?** | **Yes** | All network requests initiated by Google Mobile Ads SDK use HTTPS with TLS 1.3. |
-| **Do you provide a way for users to request that their data be deleted?** | **Yes** | Users can wipe local progress via the in-app "Reset Progress" setting and delete their Google Advertising ID in Android Settings. |
+| Play Console Question | Response | Technical Details & Justification | Requires Dev Confirmation? |
+|---|---|---|---|
+| **Does your app collect or share any of the required user data types?** | **Yes** | Yes, via the Google Mobile Ads SDK (AdMob) when connected to the internet. The app's own code does not collect data. | No (Confirmed by SDK behavior) |
+| **Is all of the user data collected by your app encrypted in transit?** | **Yes** | All network requests initiated by Google Mobile Ads SDK use HTTPS / TLS encryption in transit. | No (Standard Google SDK protocol) |
+| **Does your app provide a way for users to create an account?** | **No** | Arrow Escape is a 100% offline single-player puzzle game with no accounts, logins, or cloud databases. | No (Confirmed by architecture) |
+| **Do you provide a way for users to request that their data be deleted?** | **Yes** | Users can wipe local progress via the in-app "Reset Progress" setting and delete their Google Advertising ID in Android Settings. | No (Instructions documented in Privacy Policy) |
 
 ---
 
 ### Section 2: Data Types Breakdown
 
 #### Category: Device or Other IDs
-- **Data Type**: `Device or other IDs` (e.g. Google Advertising ID)
+- **Data Type**: `Device or other IDs` (e.g. Google Advertising ID, Android ID)
 - **Collected**: **Yes**
 - **Shared**: **Yes** (Shared with Google AdMob / advertising partners)
 - **Processed Ephemerally**: No
@@ -40,14 +42,24 @@ The evaluation is based on official Google Mobile Ads SDK data disclosure specif
   - `Fraud prevention, security, and compliance` (click-fraud detection, bot prevention)
 
 #### Category: Location (Approximate)
-- **Data Type**: `Approximate location` (Coarse network IP-level location)
+- **Data Type**: `Approximate location` (Coarse network IP-level location derived by SDK)
 - **Collected**: **Yes** (Processed by Google Mobile Ads SDK from IP address)
 - **Shared**: **Yes** (Shared with Google AdMob)
-- **Processed Ephemerally**: Yes
+- **Processed Ephemerally**: No
 - **Required or Optional**: Optional
 - **Purposes**:
   - `Advertising or marketing` (serving geographically relevant advertising)
   - `Fraud prevention, security, and compliance`
+
+#### Category: App Activity
+- **Data Type**: `App interactions` (Ad impressions, clicks, video completion events)
+- **Collected**: **Yes** (Reported by Google Mobile Ads SDK)
+- **Shared**: **Yes** (Shared with Google AdMob)
+- **Processed Ephemerally**: No
+- **Required or Optional**: Optional
+- **Purposes**:
+  - `Advertising or marketing`
+  - `Analytics`
 
 #### Category: App Info and Performance
 - **Data Type**: `Crash logs` & `Diagnostics`
@@ -85,6 +97,7 @@ When completing the form in **Google Play Console > App Content > Data safety**:
    - Check **Yes** for deletion mechanism.
 2. Under **Data types**:
    - Under **Location**: check **Approximate location**.
+   - Under **App activity**: check **App interactions**.
    - Under **App info and performance**: check **Crash logs** and **Diagnostics**.
    - Under **Device or other IDs**: check **Device or other IDs**.
    - Leave all other categories unchecked.

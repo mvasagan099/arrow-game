@@ -38,6 +38,7 @@ For more details on how Google processes advertising data, please review:
 ### 3.2 Google User Messaging Platform (UMP) & Consent Choices
 In regions subject to regulations such as the European General Data Protection Regulation (GDPR) and UK GDPR, Arrow Escape uses the Google User Messaging Platform (UMP) SDK to present a consent dialog prior to requesting personalized advertisements.
 - **Consent Choices**: You may choose to accept or refuse personalized advertising. If you decline consent or choose non-personalized ads, contextual advertisements will be served without using your Advertising ID for behavioral profiling.
+- **Non-Personalized Ads Data Notice**: Please note that choosing non-personalized ads does not eliminate all data processing; the Google Mobile Ads SDK still processes coarse IP address for geographic ad routing, frequency capping, fraud prevention, and aggregated reporting as necessary to deliver contextual ads.
 - **Revoking / Changing Consent**: You can modify your advertising privacy choices at any time within the game:
   1. Open the game's **Settings** dialog.
   2. Tap **"Privacy & Ad Choices"**.
@@ -50,17 +51,16 @@ Arrow Escape is designed for a general audience (ages 13 and older) and is not d
 
 ---
 
-## 5. Data Security
-Because we do not operate backend servers or store user data in the cloud, there are no central databases to compromise. Network communications initiated by the Google Mobile Ads SDK are encrypted in transit using industry-standard Transport Layer Security (TLS 1.3).
+## 5. Data Security & Encryption in Transit
+Because we do not operate backend servers or store user data in the cloud, there are no central application databases to compromise. Network communications initiated by third-party advertising SDKs (such as Google Mobile Ads) use industry-standard HTTPS encryption in transit (Transport Layer Security / TLS).
 
 ---
 
 ## 6. How to Delete Your Data
-You have complete control over your local game data:
-- To reset all progress, coin balances, and unlocked cosmetics, go to **Settings** in the game and select **"Reset Progress"**, or navigate to **Android Settings > Apps > Arrow Escape > Storage > Clear Data**.
-
-To opt out of personalized advertising at the Android OS level:
-- Navigate to **Settings > Google > Ads > Delete Advertising ID** (or **Opt out of Ads Personalization** on older Android versions).
+You have control over data stored on your device and advertising identifiers:
+- **Local Gameplay Data**: To reset all progress, coin balances, and unlocked cosmetics, go to **Settings** in the game and select **"Reset Progress"**, or navigate to **Android Settings > Apps > Arrow Escape > Storage > Clear Data**. This permanently purges all on-device save state.
+- **Advertising Data**: Data collected and retained by Google AdMob is governed by Google's privacy policies. You can reset or delete your Google Advertising ID at any time via Android OS settings:
+  - Navigate to **Android Settings > Google > Ads > Delete Advertising ID** (or **Reset Advertising ID**).
 
 ---
 
