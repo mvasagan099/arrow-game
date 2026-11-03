@@ -22,7 +22,12 @@ const suites = [
   'phase3.test.mjs',
   'economy.test.mjs',
   'ads.test.mjs',
-  'native-bridge.test.mjs'
+  'native-bridge.test.mjs',
+  'economy-integrity.test.mjs',
+  'performance.test.mjs',
+  'security.test.mjs',
+  'offline.test.mjs',
+  'stability.test.mjs'
 ];
 
 async function runSuite(file) {

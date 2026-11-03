@@ -13,7 +13,7 @@ import { createGameState, applyTap, applyUndo, applyRestart, progressFraction } 
 import { findHint } from './engine/hint.js';
 import { tip } from './engine/arrow.js';
 
-import { setupCanvas, markDirty, startLoop, onResize as onCanvasResize } from './render/loop.js';
+import { setupCanvas, markDirty, startLoop, stopLoop, resumeLoop, onResize as onCanvasResize } from './render/loop.js';
 import { resetView, zoomAt, getGeom, cellCenter } from './render/viewport.js';
 import { invalidatePalette, readPalette, setRenderCosmetics } from './render/canvas.js';
 import { setReduceMotion, makeExtract, makeBlock, makeWiggle, makeWin } from './render/animations.js';
@@ -121,6 +121,7 @@ initActions({
 initHome({
   onPlay: () => {
     hideHome();
+    resumeLoop();
     hideBanner();
     jumpToLevel(data.currentLevel || 1);
   },
@@ -341,7 +342,13 @@ loadLevel(Math.max(1, Math.min(MAX_LEVEL, data.currentLevel || 1)));
 startLoop(() => state, () => animations, () => ui);
 
 // Start on Home Screen by default
-showHome(data);
+function navigateToHome() {
+  stopLoop();
+  showHome(data);
+  showBanner('home');
+}
+
+navigateToHome();
 
 // Initialize Google AdMob subsystem (gracefully falls back offline)
 initAdService(data, d => persist.save(d)).then(() => {
@@ -364,8 +371,7 @@ initAndroidBridge({
   },
   openPause: () => doPause(),
   showHome: () => {
-    showHome(data);
-    showBanner('home');
+    navigateToHome();
   },
   toast: (msg, dur) => toast(msg, dur),
   onPauseGame: () => {
@@ -408,6 +414,7 @@ function startDaily() {
   state = createGameState(puzzle, { isDaily: true });
   resetGameUi();
   hideHome();
+  resumeLoop();
   hideBanner();
   if (dailyAlreadyCompleted(data)) {
     toast('You already completed today\'s daily challenge!', 2200);
@@ -444,8 +451,7 @@ function doPause() {
       openModal('modal-settings');
     },
     onHome: () => {
-      showHome(data);
-      showBanner('home');
+      navigateToHome();
     }
   });
 }
@@ -540,8 +546,7 @@ function handleLevelFailed(reason) {
     showLevelFailed(reason, {
       onRetry: doRestart,
       onHome: () => {
-        showHome(data);
-        showBanner('home');
+        navigateToHome();
       }
     });
   }, 340);
@@ -723,8 +728,7 @@ function onLevelComplete() {
       },
       onReplay: doRestart,
       onHome: () => {
-        showHome(data);
-        showBanner('home');
+        navigateToHome();
       }
     }, rewardResult);
 

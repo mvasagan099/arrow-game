@@ -18,6 +18,19 @@ export function initLevels({ onJump, getData, getCurrentLevel }) {
   _onJump = onJump;
   _data = getData;
 
+  const gridEl = document.getElementById('levels-grid');
+  if (gridEl) {
+    gridEl.addEventListener('click', e => {
+      const btn = e.target.closest('.lvl-cell:not(.locked)');
+      if (btn && btn.dataset.level) {
+        sfxButton();
+        hapticTap();
+        closeModal('modal-levels');
+        _onJump(parseInt(btn.dataset.level, 10));
+      }
+    });
+  }
+
   const btnJump = document.getElementById('btn-jump');
   if (btnJump) {
     btnJump.addEventListener('click', () => {
@@ -185,13 +198,4 @@ function renderGrid(currentLevel) {
     }
   }
   grid.innerHTML = html.join('');
-
-  for (const btn of grid.querySelectorAll('.lvl-cell:not(.locked)')) {
-    btn.addEventListener('click', () => {
-      sfxButton();
-      hapticTap();
-      closeModal('modal-levels');
-      _onJump(parseInt(btn.dataset.level, 10));
-    });
-  }
 }

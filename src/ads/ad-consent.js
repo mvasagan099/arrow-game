@@ -111,9 +111,11 @@ export async function showPrivacyOptions(admobPlugin = null, options = {}) {
   try {
     if (typeof admobPlugin.showPrivacyOptionsForm === 'function') {
       await admobPlugin.showPrivacyOptionsForm();
-      const canRequest = typeof admobPlugin.canRequestAds === 'function'
-        ? await admobPlugin.canRequestAds()
-        : true;
+      let canRequest = true;
+      if (typeof admobPlugin.canRequestAds === 'function') {
+        const craRes = await admobPlugin.canRequestAds();
+        canRequest = typeof craRes === 'object' && craRes !== null ? !!craRes.value : !!craRes;
+      }
       _consentState.canRequestAds = canRequest;
       emitAdEvent(AD_EVENTS.CONSENT_UPDATED, { ..._consentState });
       return { success: true };

@@ -13,10 +13,15 @@
 | Phase 4 Economy & Shop | `test/economy.test.mjs` | 20 suites (55 assertions) | 20 | 0 | PASSED |
 | Phase 5 AdMob & Consent | `test/ads.test.mjs` | 30 suites (65 assertions) | 30 | 0 | PASSED |
 | Phase 6 Native Android Bridge | `test/native-bridge.test.mjs` | 11 suites (28 assertions) | 11 | 0 | PASSED |
+| Phase 7 Economy Integrity & DST | `test/economy-integrity.test.mjs` | 12 tests | 12 | 0 | PASSED |
+| Phase 7 Performance Benchmarks | `test/performance.test.mjs` | 7 tests | 7 | 0 | PASSED |
+| Phase 7 Security & OWASP Audit | `test/security.test.mjs` | 8 tests | 8 | 0 | PASSED |
+| Phase 7 Offline Reliability (16 Scenarios) | `test/offline.test.mjs` | 17 tests | 17 | 0 | PASSED |
+| Phase 7 Long-Duration Stability | `test/stability.test.mjs` | 6 tests | 6 | 0 | PASSED |
 | Full 2,000 Levels Validation | `test/validate-all-2000-levels.mjs` | 2,000 levels (6 tiers) | 2,000 | 0 | ALL 100% SOLVABLE |
-| **Total** | **Unified Runner** | **410 test points + 2,000 levels** | **2,410** | **0** | **ALL PASSED (100%)** |
+| **Total** | **Unified Runner** | **460 test points + 2,000 levels** | **2,460** | **0** | **ALL PASSED (100%)** |
 
-Execution time for the unified test runner: **9.84 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **40.96 seconds**.
+Execution time for the unified test runner: **10.79 seconds** on Node.js v22.12.0 LTS. Full 2,000 levels validation took **39.26 seconds**.
 
 ---
 

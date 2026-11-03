@@ -87,7 +87,7 @@ function migrate(data) {
   data.stats        = { ...fresh.stats, ...(data.stats || {}) };
   data.settings     = { ...fresh.settings, ...(data.settings || {}) };
   if (data.settings.theme === 'light') data.settings.theme = 'classic';
-  if (!['classic', 'dark', 'neon', 'pastel'].includes(data.settings.theme)) {
+  if (!['classic', 'dark', 'neon', 'pastel', 'cyberpunk', 'forest'].includes(data.settings.theme)) {
     data.settings.theme = fresh.settings.theme;
   }
   if (typeof data.settings.haptics !== 'boolean') {

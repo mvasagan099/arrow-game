@@ -8,12 +8,31 @@
 import { REWARDS } from './economy-config.js';
 import { ensureEconomy, awardCoins } from './wallet.js';
 
-export function todayDateKey() {
-  return new Date().toISOString().slice(0, 10);
+export function todayDateKey(d = new Date()) {
+  return d.toISOString().slice(0, 10);
 }
 
-export function yesterdayDateKey() {
-  return new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+export function yesterdayDateKey(d = new Date()) {
+  return new Date(d.getTime() - 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * Calculates calendar day difference between two YYYY-MM-DD date strings.
+ * Returns:
+ *   0 if dates are identical,
+ *   1 if dateKeyB is the day immediately following dateKeyA,
+ *  >1 if one or more days were skipped,
+ *  <0 if dateKeyB is earlier than dateKeyA (clock skew/manipulation).
+ * Immune to DST transitions, timezone offsets, and leap seconds.
+ */
+export function getDaysDifference(dateKeyA, dateKeyB) {
+  if (!dateKeyA || !dateKeyB) return 999;
+  const [y1, m1, d1] = String(dateKeyA).split('-').map(Number);
+  const [y2, m2, d2] = String(dateKeyB).split('-').map(Number);
+  if (!y1 || !m1 || !d1 || !y2 || !m2 || !d2) return 999;
+  const t1 = Date.UTC(y1, m1 - 1, d1);
+  const t2 = Date.UTC(y2, m2 - 1, d2);
+  return Math.round((t2 - t1) / 86400000);
 }
 
 /**
@@ -111,9 +130,8 @@ export function getDailyLoginStatus(data) {
   const eco = ensureEconomy(data);
   const cal = eco.dailyCalendar;
   const today = todayDateKey();
-  const yesterday = yesterdayDateKey();
-
-  const claimedToday = cal.lastClaimDate === today;
+  const daysDiff = cal.lastClaimDate ? getDaysDifference(cal.lastClaimDate, today) : 999;
+  const claimedToday = daysDiff === 0;
 
   let activeIndex = cal.dayIndex || 0;
   let streak = cal.streak || 0;
@@ -122,14 +140,14 @@ export function getDailyLoginStatus(data) {
     // First time player
     activeIndex = 0;
     streak = 0;
-  } else if (cal.lastClaimDate === today) {
+  } else if (daysDiff === 0) {
     // Already claimed today: show current day that was claimed
     activeIndex = Math.max(0, (cal.dayIndex - 1 + 7) % 7);
-  } else if (cal.lastClaimDate === yesterday) {
+  } else if (daysDiff === 1) {
     // Consecutive login: ready for next dayIndex
     activeIndex = cal.dayIndex % 7;
   } else {
-    // Missed at least one day: streak resets
+    // Missed at least one day or clock skew: streak resets
     activeIndex = 0;
     streak = 0;
   }
@@ -137,7 +155,7 @@ export function getDailyLoginStatus(data) {
   const rewardAmount = REWARDS.DAILY_CALENDAR[activeIndex] || 10;
 
   return {
-    canClaim: !claimedToday,
+    canClaim: !claimedToday && daysDiff >= 1,
     claimedToday,
     dayIndex: activeIndex,
     streak,

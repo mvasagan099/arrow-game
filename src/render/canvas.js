@@ -130,70 +130,80 @@ function drawGrid(ctx, geom, palette) {
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 1;
     const arm = Math.max(2, cellPx * 0.10);
+    ctx.beginPath();
     for (let y = 0; y < grid; y++) {
       for (let x = 0; x < grid; x++) {
         const cx = left + (x + 0.5) * cellPx;
         const cy = top + (y + 0.5) * cellPx;
-        ctx.beginPath();
         ctx.moveTo(cx - arm, cy);
         ctx.lineTo(cx + arm, cy);
         ctx.moveTo(cx, cy - arm);
         ctx.lineTo(cx, cy + arm);
-        ctx.stroke();
       }
     }
+    ctx.stroke();
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
   } else if (boardId === 'board_velvet') {
     ctx.strokeStyle = '#8b5cf6';
     ctx.fillStyle = '#8b5cf6';
+    ctx.beginPath();
     for (let y = 0; y < grid; y++) {
       for (let x = 0; x < grid; x++) {
         const cx = left + (x + 0.5) * cellPx;
         const cy = top + (y + 0.5) * cellPx;
-        ctx.beginPath();
+        ctx.moveTo(cx + r * 1.5, cy);
         ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
-        ctx.fill();
       }
     }
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let y = 0; y < grid; y++) {
+      for (let x = 0; x < grid; x++) {
+        const cx = left + (x + 0.5) * cellPx;
+        const cy = top + (y + 0.5) * cellPx;
+        ctx.moveTo(cx + r * 0.5, cy);
+        ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+      }
+    }
+    ctx.fill();
     ctx.strokeStyle = '#8b5cf6';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
   } else if (boardId === 'board_galaxy') {
     ctx.fillStyle = '#ec4899';
     const s = Math.max(1.5, cellPx * 0.08);
+    ctx.beginPath();
     for (let y = 0; y < grid; y++) {
       for (let x = 0; x < grid; x++) {
         const cx = left + (x + 0.5) * cellPx;
         const cy = top + (y + 0.5) * cellPx;
-        ctx.beginPath();
         ctx.moveTo(cx, cy - s);
         ctx.lineTo(cx + s * 0.4, cy);
         ctx.lineTo(cx, cy + s);
         ctx.lineTo(cx - s * 0.4, cy);
         ctx.closePath();
-        ctx.fill();
       }
     }
+    ctx.fill();
     ctx.strokeStyle = '#ec4899';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(left - 0.5, top - 0.5, cellPx * grid + 1, cellPx * grid + 1);
   } else {
     ctx.fillStyle = palette.line;
-    // Draw dots at every cell center
+    // Batch all dots into a single path for high-performance single-pass GPU draw
+    ctx.beginPath();
     for (let y = 0; y < grid; y++) {
       for (let x = 0; x < grid; x++) {
         const cx = left + (x + 0.5) * cellPx;
         const cy = top + (y + 0.5) * cellPx;
-        ctx.beginPath();
+        ctx.moveTo(cx + r, cy);
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fill();
       }
     }
+    ctx.fill();
     // Subtle inset border around the playable area.
     ctx.strokeStyle = palette.line;
     ctx.lineWidth = 1;
@@ -205,11 +215,22 @@ function drawGrid(ctx, geom, palette) {
 /* ----- Arrows: shaft from tail toward tip, then triangular head. ----- */
 function drawArrows(ctx, geom, state, animations, ui, palette) {
   const flyingIds = new Set(animations.filter(a => a.kind === 'extract').map(a => a.arrowId));
-  const blockIds = new Set();
-  const wiggleIds = new Set();
+  const blockMap = new Map();
+  const wiggleMap = new Map();
+  const now = performance.now();
+
   for (const a of animations) {
-    if (a.kind === 'block') blockIds.add(a.blockerId);
-    if (a.kind === 'wiggle') wiggleIds.add(a.arrowId);
+    if (a.kind === 'block') {
+      const t = Math.max(0, Math.min(1, (now - a.t0) / a.dur));
+      blockMap.set(a.blockerId, t);
+    } else if (a.kind === 'wiggle') {
+      const t = (now - a.t0) / a.dur;
+      if (t < 1) {
+        const amp = geom.cellPx * 0.12 * (1 - t);
+        const phase = Math.sin(t * Math.PI * 6);
+        wiggleMap.set(a.arrowId, { dx: a.vec.x * amp * phase, dy: a.vec.y * amp * phase });
+      }
+    }
   }
 
   // Cache currently active keys for lock checks
@@ -220,8 +241,8 @@ function drawArrows(ctx, geom, state, animations, ui, palette) {
 
   for (const arrow of state.arrows) {
     if (flyingIds.has(arrow.id)) continue; // drawn by the animation pass
-    const blockT = getBlockFlashT(animations, arrow.id);
-    const wiggle = getWiggleOffset(animations, arrow.id, geom.cellPx);
+    const blockT = blockMap.get(arrow.id) ?? -1;
+    const wiggle = wiggleMap.get(arrow.id) ?? null;
     const isLocked = arrow.lockedByKey ? activeKeys.has(arrow.lockedByKey) : false;
     drawArrow(ctx, geom, arrow, palette, blockT, wiggle, 1, null, isLocked);
   }

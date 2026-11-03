@@ -101,15 +101,19 @@ export function stopLoop() {
   }
 }
 
+export function resumeLoop() {
+  markDirty();
+  if (_savedGetters) {
+    startLoop(_savedGetters.getState, _savedGetters.getAnimations, _savedGetters.getUi);
+  }
+}
+
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       stopLoop();
     } else {
-      markDirty();
-      if (_savedGetters) {
-        startLoop(_savedGetters.getState, _savedGetters.getAnimations, _savedGetters.getUi);
-      }
+      resumeLoop();
     }
   });
 }

@@ -3,6 +3,8 @@
    is hashed from the ISO date string (UTC). The streak resets if a day
    is skipped. */
 
+import { getDaysDifference } from '../economy/rewards.js';
+
 export function todayKey() {
   const d = new Date();
   return d.toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
@@ -27,7 +29,7 @@ export function recordDailyCompletion(data, dateKey) {
     if (daily.history.length > 60) daily.history.shift();
   }
 
-  if (daily.lastDateKey === yesterdayKey()) {
+  if (daily.lastDateKey && getDaysDifference(daily.lastDateKey, dateKey) === 1) {
     daily.streak = (daily.streak || 0) + 1;
   } else {
     daily.streak = 1;
@@ -48,8 +50,8 @@ export function rolloverDailyStreak(data) {
   const daily = data.daily;
   if (!daily.lastDateKey) return;
   const t = todayKey();
-  const y = yesterdayKey();
-  if (daily.lastDateKey !== t && daily.lastDateKey !== y) {
+  const diff = getDaysDifference(daily.lastDateKey, t);
+  if (diff > 1) {
     daily.streak = 0;
   }
 }

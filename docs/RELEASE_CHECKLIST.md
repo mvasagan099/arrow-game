@@ -91,3 +91,16 @@
 - [ ] **Data Safety & Privacy**:
   - Privacy policy URL hosted on GitHub Pages or custom domain.
   - Data Safety declaration: No user personal data collected or shared.
+
+---
+
+## 6. Phase 7 Security, Performance & Stability Verification (COMPLETED)
+
+- [x] **OWASP MASVS Audit**: `docs/SECURITY_AUDIT.md` completed. Remote WebView debugging disabled in release builds (`BuildConfig.DEBUG` gating in `MainActivity.java`).
+- [x] **Zero Dangerous Permissions**: Verified in `AndroidManifest.xml` via `test/security.test.mjs`.
+- [x] **GPU Draw Call Reduction**: Batched grid dot rendering into single path; 1,600 calls reduced to 1 call per frame (`docs/PERFORMANCE_BENCHMARKS.md`).
+- [x] **Idle CPU Optimization**: `stopLoop()` halting rAF on Home screen; 0.0% idle CPU drain.
+- [x] **Offline Stability**: Verified 16 offline scenarios in `test/offline.test.mjs`.
+- [x] **Timezone / DST Math**: Integer UTC day difference algorithm verified in `test/economy-integrity.test.mjs`.
+- [x] **Long-Duration Stress**: 100 level solves, 100 restarts, 100 undos, 50 theme switches with zero leaks (+6.2MB heap delta in `docs/STABILITY_TEST_REPORT.md`).
+- [x] **Multi-Device Compatibility**: Layout tested across 9:16 to 9:21 and 3:4 tablets (`docs/DEVICE_COMPATIBILITY.md`).

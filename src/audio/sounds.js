@@ -43,6 +43,12 @@ function blip({ freq = 440, type = 'sine', dur = 0.12, attack = 0.005, decay = 0
   g.gain.linearRampToValueAtTime(gain, c.currentTime + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur + decay);
   o.connect(g).connect(masterGain);
+  o.onended = () => {
+    try {
+      o.disconnect();
+      g.disconnect();
+    } catch (e) {}
+  };
   o.start();
   o.stop(c.currentTime + dur + decay + 0.02);
 }
