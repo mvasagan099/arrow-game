@@ -34,6 +34,9 @@ yarn-error.log*
 # Release Binary Artifacts (Keep large binaries out of git; use GitHub Releases / Actions artifacts)
 releases/**/*.apk
 releases/**/*.aab
+release-artifacts/
+release-artifacts-*/
+release-artifacts-verified/
 
 # Local env
 .env
